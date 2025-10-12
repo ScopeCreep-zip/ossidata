@@ -1,0 +1,38 @@
+[package]
+name = "arduino-uno"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ossidata-core = { path = "../../ossidata-core" }
+embedded-hal = { workspace = true }
+nb = { workspace = true }
+avr-device = { workspace = true, features = ["atmega328p", "critical-section-impl", "rt"] }
+critical-section = { workspace = true }
+ufmt = { workspace = true }
+
+# Panic handler for no_std
+panic-halt = "0.2"
+
+
+[[bin]]
+name = "blink"
+path = "src/bin/blink.rs"
+
+[[bin]]
+name = "hello_world"
+path = "src/bin/hello_world.rs"
+
+[[bin]]
+name = "button"
+path = "src/bin/button.rs"
+
+[[bin]]
+name = "serial_echo"
+path = "src/bin/serial_echo.rs"
+
+[[bin]]
+name = "led_pattern"
+path = "src/bin/led_pattern.rs"

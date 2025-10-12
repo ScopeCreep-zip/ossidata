@@ -1,0 +1,15 @@
+[package]
+name = "ossidata-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+embedded-hal = { workspace = true }
+nb = { workspace = true }
+critical-section = { workspace = true }
+portable-atomic = { workspace = true }
+
+[features]
+default = []

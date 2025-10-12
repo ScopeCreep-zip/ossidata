@@ -1,0 +1,99 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+*.pdb
+
+# Cargo lock file (optional - uncomment if you want to ignore it for libraries)
+# Cargo.lock
+
+# Build outputs
+*.hex
+*.elf
+*.bin
+*.map
+*.lst
+*.o
+*.a
+*.d
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Agent documentation (as requested)
+/agentdocs/
+
+# Flash scripts temporary files
+flash-*.log
+*.tmp
+
+# Serial port lock files
+*.lock
+
+# Python cache (if any Python tools are used)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+.env.local
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# AVR specific
+*.srec
+*.hex.bak
+*.eep
+
+# Documentation build outputs (if using mdbook or similar)
+/book/
+/docs/build/
+
+# Test coverage
+*.profraw
+*.profdata
+/coverage/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Log files
+*.log
+logs/
+
+# Package files
+*.tar.gz
+*.zip
+
+# Custom build directories
+/build/
+/dist/
+/out/

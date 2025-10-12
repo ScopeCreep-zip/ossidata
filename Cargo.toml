@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "ossidata-core",
+    "boards/arduino-uno",
+]
+
+[workspace.package]
+version = "0.0.1"
+authors = ["usrbinkat"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/usrbinkat/ossidata"
+
+[workspace.dependencies]
+embedded-hal = "1.0"
+nb = "1.1"
+critical-section = "1.1"
+portable-atomic = "1.6"
+heapless = "0.8"
+ufmt = "0.2"
+
+# AVR-specific dependencies
+avr-device = "0.7"
+
+[profile.release]
+opt-level = "s"     # Optimize for size
+lto = true          # Link-time optimization
+codegen-units = 1   # Single codegen unit for better optimization
+panic = "abort"     # Don't include unwinding code
+strip = true        # Strip symbols
+
+[profile.dev]
+panic = "abort"     # Even in dev, we can't unwind on AVR
+opt-level = 1       # Some optimization even in debug
