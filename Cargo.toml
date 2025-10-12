@@ -7,10 +7,10 @@ members = [
 
 [workspace.package]
 version = "0.0.1"
-authors = ["usrbinkat"]
+authors = ["ScopeCreep-zip"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/usrbinkat/ossidata"
+repository = "https://github.com/ScopeCreep-zip/ossidata"
 
 [workspace.dependencies]
 embedded-hal = "1.0"

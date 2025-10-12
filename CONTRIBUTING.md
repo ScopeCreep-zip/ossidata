@@ -43,7 +43,7 @@ git clone https://github.com/YOUR_USERNAME/ossidata.git
 cd ossidata
 
 # Add upstream remote
-git remote add upstream https://github.com/radicalkjax/ossidata.git
+git remote add upstream https://github.com/ScopeCreep-zip/ossidata.git
 
 # Create a feature branch
 git checkout -b feature/my-feature
@@ -59,7 +59,7 @@ cargo fmt --all -- --check
 
 ### 1. Find Something to Work On
 
-- Check [GitHub Issues](https://github.com/radicalkjax/ossidata/issues) for open tasks
+- Check [GitHub Issues](https://github.com/ScopeCreep-zip/ossidata/issues) for open tasks
 - Look for issues labeled `good-first-issue` or `help-wanted`
 - Propose new features via GitHub Discussions first
 

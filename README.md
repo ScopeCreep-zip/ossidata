@@ -11,9 +11,9 @@ tags:
 
 A safe, ergonomic, and modern Rust SDK for programming Arduino boards.
 
-[![CI](https://github.com/radicalkjax/ossidata/workflows/CI/badge.svg)](https://github.com/radicalkjax/ossidata/actions)
+[![deepwiki](https://img.shields.io/badge/docs-deepwiki-blue.svg)](https://github.com/ScopeCreep-zip/ossidata)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-in%20development-yellow)](https://github.com/radicalkjax/ossidata)
+[![Status](https://img.shields.io/badge/status-in%20development-yellow)](https://github.com/ScopeCreep-zip/ossidata)
 
 ---
 
@@ -67,18 +67,19 @@ fn main() -> ! {
 ## ✨ Features
 
 ### Current (v0.1.0 - In Development)
-- 🚧 GPIO (Digital I/O) for Arduino Uno
-- 🚧 Type-safe pin operations
-- 🚧 Basic delay functions
+- ✅ GPIO (Digital I/O) for Arduino Uno
+- ✅ Type-safe pin operations with type-state pattern
+- ✅ Serial (UART) communication
+- ✅ Basic delay functions
 
 ### Planned
 - 📋 PWM output
 - 📋 Analog input (ADC)
-- 📋 Serial (UART) communication
 - 📋 I2C protocol
 - 📋 SPI protocol
 - 📋 Timers and interrupts
 - 📋 Multi-board support
+- 📋 embedded-hal trait implementations
 
 ## 📚 Documentation
 
@@ -100,21 +101,19 @@ Developer and planning documentation is in [`/agentdocs`](agentdocs/README.md).
 
 ## 🛠️ Development Status
 
-**Current Phase**: Phase 1 - AVR Foundation 🚧 (45% Complete)
+**Current Phase**: Phase 1 - AVR Foundation 🚧 (50% Complete)
 **Previous Phase**: Phase 0.5 - Hardware Validation ✅ COMPLETE
 **Target Completion**: 2025-11-07 (4 weeks from Phase 1 start)
 
 ### Our First Major Milestone
 
-**Goal**: Create and run a working "Hello World" program on any Arduino device.
+**Goal**: Create and run a working "Hello World" program on Arduino Uno.
 
 ```rust
 serial.println("Hello, World!");
 ```
 
-**Success Criteria**: Works on Arduino Uno, Mega, and Due with a single command.
-
-See [Milestone v0.1.0](docs/MILESTONE_V0.1.md) for complete details.
+**Status**: ✅ Complete! The `hello_world` example works on Arduino Uno with `cargo run`.
 
 ### Progress Tracker
 
@@ -128,11 +127,13 @@ See [Milestone v0.1.0](docs/MILESTONE_V0.1.md) for complete details.
 - [x] GPIO for Arduino Uno (100%) ✅
 - [x] Serial/UART for Arduino Uno (100%) ✅
 - [x] Hello World example (100%) ✅
+- [x] Cross-platform flash system (100%) ✅
 - [ ] CI/CD configuration (0%)
 - [ ] Multi-board support (0%)
-- [ ] Full documentation (20%)
+- [ ] User documentation (80%)
+- [ ] embedded-hal traits (0%)
 
-**Overall Progress**: 45% (GPIO, Serial, Cross-platform Flash System complete, 5 working examples)
+**Overall Progress**: 50% (GPIO, Serial, Cross-platform Flash System complete, 5 working examples tested)
 
 ## 🔧 Building from Source
 
@@ -159,15 +160,15 @@ See [Milestone v0.1.0](docs/MILESTONE_V0.1.md) for complete details.
 
 ```bash
 # Clone the repository
-git clone https://github.com/radicalkjax/ossidata.git
+git clone https://github.com/ScopeCreep-zip/ossidata.git
 cd ossidata
 
 # Build workspace
 cargo build --workspace
 
 # Build for Arduino Uno (AVR)
-cd ossidata-uno
-cargo build -Z build-std=core --target ../avr-specs/avr-atmega328p.json --release
+cd boards/arduino-uno
+cargo build --release
 ```
 
 ### Flash to Arduino
@@ -217,7 +218,7 @@ pin.set_high();  // ❌ Compile error!
 All abstractions optimize away to direct register access - no runtime overhead compared to hand-written C code.
 
 ### Ecosystem Integration
-Full `embedded-hal` 1.0 trait implementation for compatibility with the Rust embedded ecosystem.
+Built with `embedded-hal` 1.0 compatibility in mind. Trait implementations coming soon!
 
 ## 📊 Comparison with Arduino C++
 
@@ -271,18 +272,8 @@ This project builds upon the excellent work of:
 
 ## 📞 Contact & Community
 
-- **Issues**: [GitHub Issues](https://github.com/radicalkjax/ossidata/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/radicalkjax/ossidata/discussions)
-- **Matrix Chat**: *Coming soon*
-
-## 🗺️ Roadmap
-
-- **Q1 2025**: Arduino Uno support (GPIO, PWM, ADC, Serial)
-- **Q2 2025**: Arduino Mega and Nano support
-- **Q3 2025**: ARM boards (Due, Zero)
-- **Q4 2025**: ESP32 support, v1.0 release
-
-See [agentdocs](agentdocs/) for detailed roadmap and planning documentation.
+- **Issues**: [GitHub Issues](https://github.com/ScopeCreep-zip/ossidata/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ScopeCreep-zip/ossidata/discussions)
 
 ---
 

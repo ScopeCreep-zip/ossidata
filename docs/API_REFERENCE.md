@@ -882,7 +882,7 @@ loop {
 
 ## Feedback
 
-Found an issue or have a suggestion? [Open an issue](https://github.com/radicalkjax/ossidata/issues)!
+Found an issue or have a suggestion? [Open an issue](https://github.com/ScopeCreep-zip/ossidata/issues)!
 
 ---
 

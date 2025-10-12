@@ -93,7 +93,7 @@ sudo usermod -a -G dialout $USER
 ## Step 3: Clone the Repository
 
 ```bash
-git clone https://github.com/radicalkjax/ossidata.git
+git clone https://github.com/ScopeCreep-zip/ossidata.git
 cd ossidata
 ```
 
@@ -371,8 +371,8 @@ graph TD
 
 ## Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/radicalkjax/ossidata/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/radicalkjax/ossidata/discussions)
+- **Issues**: [GitHub Issues](https://github.com/ScopeCreep-zip/ossidata/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ScopeCreep-zip/ossidata/discussions)
 - **Documentation**: [Full documentation](../README.md)
 
 ## Success!
