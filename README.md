@@ -67,9 +67,9 @@ fn main() -> ! {
 ## ✨ Features
 
 ### Current (v0.1.0 - In Development)
-- ✅ GPIO (Digital I/O) for Arduino Uno
+- 🚧 GPIO (Digital I/O) for Arduino Uno (60% - output works, input untested, no analog pins)
 - ✅ Type-safe pin operations with type-state pattern
-- ✅ Serial (UART) communication
+- 🚧 Serial (UART) communication (80% - needs hardware testing and API doc fixes)
 - ✅ Basic delay functions
 
 ### Planned
@@ -101,7 +101,7 @@ Developer and planning documentation is in [`/agentdocs`](agentdocs/README.md).
 
 ## 🛠️ Development Status
 
-**Current Phase**: Phase 1 - AVR Foundation 🚧 (50% Complete)
+**Current Phase**: Phase 1 - AVR Foundation 🚧 (35% Complete)
 **Previous Phase**: Phase 0.5 - Hardware Validation ✅ COMPLETE
 **Target Completion**: 2025-11-07 (4 weeks from Phase 1 start)
 
@@ -113,7 +113,7 @@ Developer and planning documentation is in [`/agentdocs`](agentdocs/README.md).
 serial.println("Hello, World!");
 ```
 
-**Status**: ✅ Complete! The `hello_world` example works on Arduino Uno with `cargo run`.
+**Status**: 🚧 In Progress - Serial implementation 80%, GPIO output works, input modes and hello_world hardware testing pending.
 
 ### Progress Tracker
 
@@ -123,17 +123,17 @@ serial.println("Hello, World!");
 - [x] Hardware validation - LED blinks! (100%) ✨
 - [x] Toolchain validated (nightly-2025-04-27) (100%)
 - [x] Workspace setup (100%) ✅
-- [x] Core types implementation (100%) ✅
-- [x] GPIO for Arduino Uno (100%) ✅
-- [x] Serial/UART for Arduino Uno (100%) ✅
-- [x] Hello World example (100%) ✅
 - [x] Cross-platform flash system (100%) ✅
+- [x] 5 examples created and compiling (100%) ✅
+- [ ] Core types implementation (30% - mostly placeholders)
+- [ ] GPIO implementation (60% - output works, input untested, no analog pins)
+- [ ] Serial/UART implementation (80% - code exists, API docs mismatch, needs hardware testing)
 - [ ] CI/CD configuration (0%)
 - [ ] Multi-board support (0%)
 - [ ] User documentation (80%)
 - [ ] embedded-hal traits (0%)
 
-**Overall Progress**: 50% (GPIO, Serial, Cross-platform Flash System complete, 5 working examples tested)
+**Overall Progress**: 35% (Cross-platform Flash System complete, GPIO 60%, Serial 80%, 5 examples compiling)
 
 ## 🔧 Building from Source
 
