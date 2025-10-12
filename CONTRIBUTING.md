@@ -1,4 +1,14 @@
+---
+tags:
+  - deepwiki/ossidata
+  - contributing
+  - development
+  - community
+---
+
 # Contributing to Ossidata
+
+**Last Updated**: 2025-10-12
 
 Thank you for your interest in contributing to Ossidata! We welcome contributions from everyone.
 
@@ -12,9 +22,10 @@ Be respectful, inclusive, and constructive. We're all here to learn and build so
 
 1. **Rust Nightly Toolchain** (for AVR support):
    ```bash
-   rustup toolchain install nightly-2024-05-01
-   rustup component add rust-src rustfmt clippy --toolchain nightly-2024-05-01
+   rustup toolchain install nightly-2025-04-27
+   rustup component add rust-src --toolchain nightly-2025-04-27
    ```
+   > ⚠️ **Important**: Use exactly `nightly-2025-04-27` - this version is hardware-validated
 
 2. **AVR-GCC Toolchain**:
    - **macOS**: `brew install avr-gcc avrdude`
@@ -28,8 +39,11 @@ Be respectful, inclusive, and constructive. We're all here to learn and build so
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/ossidata.git
+git clone https://github.com/YOUR_USERNAME/ossidata.git
 cd ossidata
+
+# Add upstream remote
+git remote add upstream https://github.com/radicalkjax/ossidata.git
 
 # Create a feature branch
 git checkout -b feature/my-feature
@@ -45,7 +59,7 @@ cargo fmt --all -- --check
 
 ### 1. Find Something to Work On
 
-- Check [GitHub Issues](https://github.com/yourusername/ossidata/issues) for open tasks
+- Check [GitHub Issues](https://github.com/radicalkjax/ossidata/issues) for open tasks
 - Look for issues labeled `good-first-issue` or `help-wanted`
 - Propose new features via GitHub Discussions first
 
@@ -112,25 +126,32 @@ cargo build -Z build-std=core --target ../avr-specs/avr-atmega328p.json --releas
 
 ```
 ossidata/
+├── boards/              # Board Support Packages
+│   ├── arduino-uno/    # Arduino Uno BSP (✅ 45% complete)
+│   ├── arduino-mega/   # Arduino Mega BSP (📋 planned)
+│   └── arduino-due/    # Arduino Due BSP (📋 planned)
 ├── ossidata-core/       # Core types and traits
-├── ossidata-hal/        # Hardware abstraction layer
-├── ossidata-uno/        # Arduino Uno BSP
-├── ossidata-mega/       # Arduino Mega BSP (future)
-├── ossidata/            # Main user-facing crate
 ├── docs/                # User documentation
+│   ├── GETTING_STARTED.md
+│   ├── API_REFERENCE.md
+│   ├── ARCHITECTURE.md
+│   └── FLASHING_SOLUTION.md
 ├── agentdocs/           # Internal planning docs
-├── scripts/             # Build and flash scripts
-└── avr-specs/           # AVR target specifications
+├── flash.sh             # Cross-platform flash entry point
+├── flash-impl.sh        # Flash implementation
+├── flash-macos.sh       # macOS launcher
+├── flash-linux.sh       # Linux launcher
+└── flash-windows.bat    # Windows launcher
 ```
 
 ## 📋 Contribution Areas
 
-### High Priority
-- 🚧 GPIO implementation for Arduino Uno
-- 📋 PWM support
+### High Priority (Phase 1)
+- ✅ GPIO implementation for Arduino Uno (COMPLETE)
+- ✅ Serial (UART) communication (COMPLETE)
+- 📋 PWM support (IN PROGRESS)
 - 📋 ADC (analog input)
-- 📋 Serial (UART) communication
-- 📋 Example programs
+- 📋 Timer/interrupt abstractions
 
 ### Medium Priority
 - 📋 I2C protocol support

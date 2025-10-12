@@ -1,6 +1,0 @@
-# Ravedude configuration for Arduino Uno
-# Users should specify their serial port via:
-#   - Command line: ravedude -P /dev/ttyUSB0
-#   - Or let ravedude auto-detect
-[general]
-board = "uno"

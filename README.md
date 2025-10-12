@@ -1,9 +1,19 @@
+---
+tags:
+  - deepwiki/ossidata
+  - rust
+  - arduino
+  - embedded
+  - sdk
+---
+
 # Ossidata - Rust SDK for Arduino
 
 A safe, ergonomic, and modern Rust SDK for programming Arduino boards.
 
-[![CI](https://github.com/yourusername/ossidata/workflows/CI/badge.svg)](https://github.com/yourusername/ossidata/actions)
+[![CI](https://github.com/radicalkjax/ossidata/workflows/CI/badge.svg)](https://github.com/radicalkjax/ossidata/actions)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-in%20development-yellow)](https://github.com/radicalkjax/ossidata)
 
 ---
 
@@ -72,17 +82,27 @@ fn main() -> ! {
 
 ## 📚 Documentation
 
-- **[Milestone v0.1.0 - "Hello World"](docs/MILESTONE_V0.1.md)** - Our first major goal 🎯
-- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Step-by-step development guide
-- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to this project
-- **[API Documentation](https://docs.rs/ossidata)** *(coming soon)*
-- **[Getting Started Guide](docs/GETTING_STARTED.md)** *(coming soon)*
+### User Documentation
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| **[Getting Started](docs/GETTING_STARTED.md)** | Complete setup guide and first steps | ✅ Complete |
+| **[API Reference](docs/API_REFERENCE.md)** | Comprehensive API documentation | ✅ Complete |
+| **[Architecture](docs/ARCHITECTURE.md)** | System architecture with diagrams | ✅ Complete |
+| **[Flashing Solution](docs/FLASHING_SOLUTION.md)** | Cross-platform flash guide | ✅ Complete |
+| **[Contributing Guide](CONTRIBUTING.md)** | How to contribute | 🚧 In Progress |
+
+### Developer Documentation (Internal)
+
+Developer and planning documentation is in [`/agentdocs`](agentdocs/README.md).
+
+**Legend**: ✅ Complete | 🚧 In Progress | 📋 Planned
 
 ## 🛠️ Development Status
 
-**Current Phase**: Phase 1 - AVR Foundation 🚧 (40% Complete)
+**Current Phase**: Phase 1 - AVR Foundation 🚧 (45% Complete)
 **Previous Phase**: Phase 0.5 - Hardware Validation ✅ COMPLETE
-**Next Milestone**: [v0.1.0 - "Hello World"](docs/MILESTONE_V0.1.md) 🎯
+**Target Completion**: 2025-11-07 (4 weeks from Phase 1 start)
 
 ### Our First Major Milestone
 
@@ -112,7 +132,7 @@ See [Milestone v0.1.0](docs/MILESTONE_V0.1.md) for complete details.
 - [ ] Multi-board support (0%)
 - [ ] Full documentation (20%)
 
-**Overall Progress**: 40% (Core functionality implemented, examples created, ready for hardware testing)
+**Overall Progress**: 45% (GPIO, Serial, Cross-platform Flash System complete, 5 working examples)
 
 ## 🔧 Building from Source
 
@@ -139,7 +159,7 @@ See [Milestone v0.1.0](docs/MILESTONE_V0.1.md) for complete details.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ossidata.git
+git clone https://github.com/radicalkjax/ossidata.git
 cd ossidata
 
 # Build workspace
@@ -251,8 +271,8 @@ This project builds upon the excellent work of:
 
 ## 📞 Contact & Community
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/ossidata/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/ossidata/discussions)
+- **Issues**: [GitHub Issues](https://github.com/radicalkjax/ossidata/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/radicalkjax/ossidata/discussions)
 - **Matrix Chat**: *Coming soon*
 
 ## 🗺️ Roadmap
@@ -262,8 +282,8 @@ This project builds upon the excellent work of:
 - **Q3 2025**: ARM boards (Due, Zero)
 - **Q4 2025**: ESP32 support, v1.0 release
 
-See [MILESTONES.md](docs/MILESTONES.md) for detailed roadmap.
+See [agentdocs](agentdocs/) for detailed roadmap and planning documentation.
 
 ---
 
-**Status**: 🚧 Active Development | **Version**: 0.1.0-dev | **Last Updated**: 2025-10-10
+**Status**: 🚧 Active Development | **Version**: 0.1.0-dev | **Last Updated**: 2025-10-12
