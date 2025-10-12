@@ -382,7 +382,7 @@ build-std = ["core"]             # Build core library from source
 
 Our cross-platform flash system solves two problems:
 
-1. **avrdude interactive prompts** (solved with `-s -qq` flags)
+1. **avrdude minimal output** (solved with `-q -q` flags for avrdude 8.1+ compatibility)
 2. **Claude Code terminal hanging** (solved with external terminals)
 
 ```mermaid
@@ -408,7 +408,7 @@ sequenceDiagram
     end
 
     Terminal->>Terminal: Run flash-impl.sh
-    Terminal->>Arduino: avrdude -s -qq flash
+    Terminal->>Arduino: avrdude -q -q flash
     Arduino-->>Terminal: Flash complete
     Terminal->>Terminal: Write DONE status file
     Terminal->>Terminal: Close automatically

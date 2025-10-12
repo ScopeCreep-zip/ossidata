@@ -3,14 +3,19 @@ target = "avr-none"
 rustflags = ["-C", "target-cpu=atmega328p"]
 
 [target.'cfg(target_arch = "avr")']
-# Safe runner that won't hang - uses avrdude with proper flags
+# Use external terminal flash system to prevent Claude Code hanging
+# This calls our cross-platform flash.sh which opens external terminal
 runner = """sh -c '
+  BINARY_NAME=$(basename "$1" .elf)
   PORT="${OSSIDATA_PORT:-/dev/cu.usbmodem14401}"
-  HEX="${CARGO_TARGET_DIR:-../../target}/avr-none/release/$(basename "$1" .elf).hex"
+  HEX="${CARGO_TARGET_DIR:-../../target}/avr-none/release/$BINARY_NAME.hex"
+
+  # Convert ELF to HEX (build is already done by cargo)
   avr-objcopy -O ihex "$1" "$HEX"
-  echo "Flashing to $PORT..."
-  avrdude -p atmega328p -c arduino -P "$PORT" -b 115200 -s -qq -D -U flash:w:"$HEX":i 2>/dev/null
-  echo "Flash complete!"
+
+  # Call flash.sh which opens external terminal for flashing
+  # This prevents Claude Code terminal from hanging
+  exec ../../flash.sh "$PORT" "$BINARY_NAME"
 ' --"""
 
 [unstable]

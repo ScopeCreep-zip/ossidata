@@ -10,20 +10,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Colors
 GREEN='\033[0;32m'
-RED='\033[0;31m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}===================================${NC}"
-echo -e "${BLUE}  External Terminal Flash Launcher ${NC}"
-echo -e "${BLUE}===================================${NC}"
-echo ""
-echo -e "${YELLOW}[INFO]${NC} This will open a new Terminal window"
-echo -e "${YELLOW}[INFO]${NC} The flash will run there, keeping Claude Code responsive"
-echo -e "${YELLOW}[INFO]${NC} Port: $PORT"
-echo -e "${YELLOW}[INFO]${NC} Binary: $BINARY_NAME"
-echo ""
+echo "Opening external terminal for flash..."
 
 # Create a temporary script that will run in the external terminal
 TEMP_SCRIPT="/tmp/flash_external_$(date +%s).sh"
@@ -253,51 +243,31 @@ END
 )
 
     # Report completion status
-    echo ""
     if echo "$FLASH_STATUS" | grep -q "SUCCESS"; then
-        echo -e "${GREEN}[COMPLETE]${NC} Flash succeeded!"
-        echo -e "${GREEN}[SUCCESS]${NC} Arduino is now running $BINARY_NAME"
+        echo "✓ Flash succeeded! Arduino is running $BINARY_NAME"
     elif echo "$FLASH_STATUS" | grep -q "FAILED"; then
-        echo -e "${RED}[COMPLETE]${NC} Flash failed! Check the Terminal output for errors."
+        echo "✗ Flash failed - check Terminal output"
         exit 1
     elif echo "$FLASH_STATUS" | grep -q "TIMEOUT"; then
-        echo -e "${RED}[ERROR]${NC} Flash timed out after 5 minutes"
+        echo "✗ Flash timed out after 5 minutes"
         exit 1
     elif echo "$FLASH_STATUS" | grep -q "ERROR"; then
-        echo -e "${RED}[ERROR]${NC} Flash monitoring error: $FLASH_STATUS"
+        echo "✗ Flash error: $FLASH_STATUS"
         exit 1
     else
-        echo -e "${GREEN}[COMPLETE]${NC} Flash process completed."
-    fi
-
-    echo -e "${GREEN}[INFO]${NC} Terminal window has been closed."
-
-    if [ "$TERMINAL_WAS_RUNNING" = "false" ]; then
-        echo -e "${GREEN}[INFO]${NC} Terminal.app has been quit."
+        echo "Flash completed"
     fi
 
 elif command -v gnome-terminal >/dev/null 2>&1; then
-    # Linux with GNOME Terminal
     gnome-terminal -- bash -c "\"$TEMP_SCRIPT\" \"$PORT\" \"$BINARY_NAME\" \"$SCRIPT_DIR\"; read -p \"Press enter to close...\""
-    echo -e "${GREEN}[SUCCESS]${NC} Flash launched in external terminal!"
+    echo "Flash launched in external terminal"
 
 elif command -v xterm >/dev/null 2>&1; then
-    # Fallback to xterm
     xterm -e bash -c "\"$TEMP_SCRIPT\" \"$PORT\" \"$BINARY_NAME\" \"$SCRIPT_DIR\"; read -p \"Press enter to close...\"" &
-    echo -e "${GREEN}[SUCCESS]${NC} Flash launched in xterm!"
+    echo "Flash launched in xterm"
 
 else
-    echo -e "${YELLOW}[WARNING]${NC} No suitable terminal emulator found"
-    echo -e "${YELLOW}[INFO]${NC} Run this command manually in a separate terminal:"
-    echo ""
-    echo "    cd $SCRIPT_DIR && ./flash.sh $PORT $BINARY_NAME"
-    echo ""
+    echo "ERROR: No terminal emulator found"
+    echo "Run manually: cd $SCRIPT_DIR && ./flash.sh $PORT $BINARY_NAME"
+    exit 1
 fi
-
-echo ""
-echo -e "${BLUE}===================================${NC}"
-echo -e "${GREEN}[IMPORTANT]${NC} Claude Code terminal remains responsive!"
-echo -e "${BLUE}===================================${NC}"
-
-# Don't use background processes as they can cause Claude Code to wait
-# Clean up will happen next time the script runs (see line 114)

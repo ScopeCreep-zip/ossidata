@@ -41,12 +41,13 @@ Use avrdude with specific flags that disable ALL interactive features:
 
 ```bash
 avrdude -p atmega328p -c arduino -P /dev/cu.usbmodem14401 -b 115200 \
-  -s     # CRITICAL: Disable safemode (no prompts!)
-  -qq    # Extra quiet (no progress bars)
+  -q -q  # Double quiet (no progress bars, minimal output)
   -D     # Don't erase (faster, safe with bootloader)
   -U flash:w:firmware.hex:i
   2>/dev/null  # Suppress stderr output
 ```
+
+> **Note for avrdude < 8.0**: Older versions used the `-s` flag to disable safemode. This flag was removed in avrdude 8.1+. The `-q -q` (double quiet) approach works across all versions.
 
 ### Solution 2: External Terminal (For Claude Code Integration)
 Run flashing in completely isolated external terminal, separate from Claude Code process tree.
@@ -68,7 +69,7 @@ flowchart TD
 
     I --> J[Build with cargo]
     J --> K[Convert ELF to HEX]
-    K --> L[Flash with avrdude -s -qq]
+    K --> L[Flash with avrdude -q -q]
     L --> M[Write DONE status]
     M --> N[External terminal closes]
 
@@ -123,7 +124,7 @@ cargo build --release --bin blink
 
 # Flash (safe command that won't hang)
 avrdude -p atmega328p -c arduino -P /dev/cu.usbmodem14401 -b 115200 \
-  -s -qq -D -U flash:w:../../target/avr-none/release/blink.hex:i 2>/dev/null
+  -q -q -D -U flash:w:../../target/avr-none/release/blink.hex:i 2>/dev/null
 ```
 
 ## Port Configuration
@@ -151,10 +152,10 @@ export OSSIDATA_PORT=/dev/cu.usbmodem14401
 
 ## Why This Works
 
-1. **No Interactive Prompts**: The `-s` flag disables safemode completely
-2. **No Progress Output**: The `-qq` flag suppresses all non-error output
-3. **No Terminal Escape Codes**: Stderr redirection removes ANSI codes
-4. **Fast and Reliable**: The `-D` flag skips chip erase (bootloader handles it)
+1. **Minimal Output**: The `-q -q` (double quiet) flag suppresses progress bars and verbose output
+2. **No Terminal Escape Codes**: Stderr redirection removes ANSI codes
+3. **Fast and Reliable**: The `-D` flag skips chip erase (bootloader handles it)
+4. **Cross-Version Compatible**: Works with both old and new avrdude versions
 
 ## Testing Checklist
 
@@ -181,14 +182,14 @@ sudo usermod -a -G dialout $USER
 
 ### Still Hangs?
 Make sure you're using ALL the required flags:
-- `-s` (disable safemode) - MOST IMPORTANT
-- `-qq` (extra quiet)
+- `-q -q` (double quiet) - MOST IMPORTANT
+- `-D` (no erase)
 - `2>/dev/null` (suppress stderr)
 
 Never use these flags (they cause hangs):
 - `-t` (terminal mode)
 - `-i` (interactive delay)
-- No `-s` flag (allows safemode prompts)
+- `-v` or `-vv` (verbose mode - causes output that can hang terminals)
 
 ## Alternative Solutions Considered
 
@@ -208,7 +209,7 @@ We researched many alternatives but avrdude with proper flags is the best:
 We solved TWO distinct hanging problems:
 
 ### Solution 1: avrdude Configuration
-The initial "avrdude hang problem" was a configuration issue. With the correct flags (`-s -qq`), avrdude works perfectly without any terminal interaction.
+The initial "avrdude hang problem" was a configuration issue. With the correct flags (`-q -q -D`), avrdude works perfectly without any terminal interaction across all versions (including 8.1+).
 
 ### Solution 2: Claude Code Integration
 The Claude Code terminal hanging was a process management issue. Running flash in external terminals completely isolates the process from Claude Code, preventing hangs.
@@ -219,5 +220,6 @@ The Claude Code terminal hanging was a process management issue. Running flash i
 - ✅ Supports macOS, Linux, and Windows
 - ✅ Completes in ~15 seconds with no hangs
 - ✅ Requires zero user intervention
+- ✅ Compatible with avrdude 8.1+ (no deprecated flags)
 
 No need for alternative flash tools - just use avrdude correctly with proper isolation!

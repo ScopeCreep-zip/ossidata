@@ -182,10 +182,10 @@ cargo run --release --bin blink
 
 # Or manually with safe flags (won't hang)
 avrdude -p atmega328p -c arduino -P /dev/cu.usbmodem14401 -b 115200 \
-  -s -qq -D -U flash:w:target/avr-none/release/blink.hex:i
+  -q -q -D -U flash:w:target/avr-none/release/blink.hex:i
 ```
 
-**Note**: We use `-s -qq` flags with avrdude to prevent terminal hanging. See [FLASHING_SOLUTION.md](docs/FLASHING_SOLUTION.md) for details.
+**Note**: We use `-q -q` flags with avrdude to prevent terminal hanging (compatible with avrdude 8.1+). See [FLASHING_SOLUTION.md](docs/FLASHING_SOLUTION.md) for details.
 
 ## 🤝 Contributing
 

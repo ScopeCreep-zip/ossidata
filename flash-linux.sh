@@ -8,21 +8,7 @@ PORT="${1:-/dev/ttyUSB0}"
 BINARY_NAME="${2:-blink}"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Colors
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}===================================${NC}"
-echo -e "${BLUE}  Linux Flash Launcher             ${NC}"
-echo -e "${BLUE}===================================${NC}"
-echo ""
-echo -e "${YELLOW}[INFO]${NC} This will open an xterm window"
-echo -e "${YELLOW}[INFO]${NC} Port: $PORT"
-echo -e "${YELLOW}[INFO]${NC} Binary: $BINARY_NAME"
-echo ""
+echo "Opening external terminal for flash..."
 
 # Check for terminal emulator - xterm is most universal
 TERMINAL_CMD=""
@@ -35,12 +21,10 @@ elif command -v konsole >/dev/null 2>&1; then
 elif command -v xfce4-terminal >/dev/null 2>&1; then
     TERMINAL_CMD="xfce4-terminal"
 else
-    echo -e "${RED}[ERROR]${NC} No terminal emulator found!"
-    echo -e "${YELLOW}[INFO]${NC} Please install xterm: sudo apt-get install xterm"
+    echo "ERROR: No terminal emulator found"
+    echo "Install xterm: sudo apt-get install xterm"
     exit 1
 fi
-
-echo -e "${GREEN}[ACTION]${NC} Using terminal: $TERMINAL_CMD"
 
 # Create temporary script that will run in external terminal
 TEMP_SCRIPT="/tmp/flash_external_$(date +%s).sh"
@@ -158,40 +142,20 @@ MAX_WAIT=300  # 5 minutes
 ELAPSED=0
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-    if [ -f "$STATUS_FILE" ]; then
-        if grep -q "DONE" "$STATUS_FILE" 2>/dev/null; then
-            # Flash completed, check result
-            if grep -q "SUCCESS" "$STATUS_FILE" 2>/dev/null; then
-                echo ""
-                echo -e "${GREEN}[COMPLETE]${NC} Flash succeeded!"
-                echo -e "${GREEN}[SUCCESS]${NC} Arduino is now running $BINARY_NAME"
-
-                # Try to close the terminal window
-                kill $TERMINAL_PID 2>/dev/null || true
-
-                echo -e "${GREEN}[INFO]${NC} Terminal window closed."
-                break
-            elif grep -q "FAILED" "$STATUS_FILE" 2>/dev/null; then
-                echo ""
-                echo -e "${RED}[COMPLETE]${NC} Flash failed! Check the terminal output for errors."
-
-                # Terminal will close itself after timeout
-                exit 1
-            fi
+    if [ -f "$STATUS_FILE" ] && grep -q "DONE" "$STATUS_FILE" 2>/dev/null; then
+        if grep -q "SUCCESS" "$STATUS_FILE" 2>/dev/null; then
+            echo "✓ Flash succeeded! Arduino is running $BINARY_NAME"
+            kill $TERMINAL_PID 2>/dev/null || true
+            exit 0
+        elif grep -q "FAILED" "$STATUS_FILE" 2>/dev/null; then
+            echo "✗ Flash failed - check terminal output"
+            exit 1
         fi
     fi
-
     sleep 1
     ((ELAPSED++))
 done
 
-if [ $ELAPSED -ge $MAX_WAIT ]; then
-    echo -e "${RED}[ERROR]${NC} Flash timed out after 5 minutes"
-    kill $TERMINAL_PID 2>/dev/null || true
-    exit 1
-fi
-
-echo ""
-echo -e "${BLUE}===================================${NC}"
-echo -e "${GREEN}[IMPORTANT]${NC} Claude Code terminal remains responsive!"
-echo -e "${BLUE}===================================${NC}"
+echo "✗ Flash timed out after 5 minutes"
+kill $TERMINAL_PID 2>/dev/null || true
+exit 1
