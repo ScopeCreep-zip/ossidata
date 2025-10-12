@@ -10,6 +10,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Colors
 GREEN='\033[0;32m'
+RED='\033[0;31m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
@@ -80,8 +81,8 @@ if [ "$FLASH_SUCCESS" = true ]; then
     echo -e "${GREEN}[SUCCESS]${NC} Flash completed successfully!"
     echo -e "${GREEN}[SUCCESS]${NC} Arduino is running $BINARY_NAME"
 
-    # Write success status
-    echo "SUCCESS:$BINARY_NAME:$(date)" > "$STATUS_FILE"
+    # Write success status with timestamp
+    echo "SUCCESS:$BINARY_NAME:$(date +%s)" > "$STATUS_FILE"
 
     # Brief pause before window closes
     echo ""
@@ -91,8 +92,8 @@ else
     echo -e "${RED}[FAILED]${NC} Flash process failed!"
     echo -e "${YELLOW}Check the output above for errors${NC}"
 
-    # Write failure status
-    echo "FAILED:$BINARY_NAME:$(date)" > "$STATUS_FILE"
+    # Write failure status with timestamp
+    echo "FAILED:$BINARY_NAME:$(date +%s)" > "$STATUS_FILE"
 
     # Keep window open longer on failure for debugging
     echo ""
@@ -100,6 +101,9 @@ else
     echo -e "${YELLOW}Press Ctrl+C to keep window open${NC}"
     sleep 10
 fi
+
+# Write completion marker
+echo "DONE" >> "$STATUS_FILE"
 
 # Script ends - AppleScript will handle closing the window
 EOF
@@ -120,64 +124,148 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     # Launch script and wait for completion synchronously
     echo -e "${YELLOW}[INFO]${NC} Waiting for flash to complete..."
 
-    # Run osascript synchronously - it will wait internally and return when done
+    # Run the AppleScript with improved monitoring
     FLASH_STATUS=$(osascript <<END 2>&1
 tell application "Terminal"
-    activate
-    set newTab to do script "bash \"$TEMP_SCRIPT\" \"$PORT\" \"$BINARY_NAME\" \"$SCRIPT_DIR\""
-    set targetWindow to first window of (every window whose tabs contains newTab)
-
-    -- Monitor completion with simple busy check
-    repeat
-        delay 1
-        if not busy of newTab then
-            exit repeat
-        end if
-    end repeat
-
-    -- Get status from file after completion
-    set statusFile to "/tmp/flash_status_latest.txt"
-    set flashResult to "UNKNOWN"
+    -- Store initial window count before activation
+    set initialWindowCount to 0
     try
-        set statusContent to do shell script "cat " & statusFile & " 2>/dev/null || echo UNKNOWN"
-        if statusContent contains "SUCCESS" then
-            set flashResult to "SUCCESS"
-        else if statusContent contains "FAILED" then
-            set flashResult to "FAILED"
-        else
-            set flashResult to "COMPLETE"
-        end if
-    on error
-        set flashResult to "COMPLETE"
+        set initialWindowCount to count of windows
     end try
 
-    -- Close the window
+    -- Activate Terminal
+    activate
     delay 0.5
-    close targetWindow saving no
 
-    -- Quit Terminal if it was not running before
-    delay 0.5
+    -- Close any default windows that just opened
     if "$TERMINAL_WAS_RUNNING" is "false" then
-        quit
-    else
-        -- Only quit if no other windows
-        if (count of windows) is 0 then
-            quit
-        end if
+        -- Terminal was not running, close any default windows
+        repeat with w in windows
+            try
+                -- Check if window is empty (just opened)
+                set tabCount to count of tabs of w
+                if tabCount is 1 then
+                    set tabHistory to history of tab 1 of w
+                    -- Check for default window indicators
+                    if tabHistory is "" or tabHistory is "exit" or (length of tabHistory) < 100 then
+                        close w saving no
+                    end if
+                end if
+            end try
+        end repeat
     end if
 
-    -- Return the result
+    -- Launch the script and get the window reference
+    set newTab to do script "bash \"$TEMP_SCRIPT\" \"$PORT\" \"$BINARY_NAME\" \"$SCRIPT_DIR\""
+
+    -- CRITICAL: Wait for the window to properly establish before checking busy
+    delay 1
+
+    -- Get the actual window containing our tab
+    set targetWindow to first window of (every window whose tabs contains newTab)
+
+    -- Wait for the tab to become busy (command starts executing)
+    set becameBusy to false
+    repeat 10 times
+        if busy of newTab then
+            set becameBusy to true
+            exit repeat
+        end if
+        delay 0.2
+    end repeat
+
+    -- If it never became busy, something went wrong
+    if not becameBusy then
+        close targetWindow saving no
+        return "ERROR: Command never started"
+    end if
+
+    -- Monitor for the DONE marker in status file (not busy property)
+    -- The busy property becomes false before flash actually completes
+    set statusFile to "/tmp/flash_status_latest.txt"
+    set flashResult to "UNKNOWN"
+    set maxWaitTime to 300 -- 5 minutes max
+    set waitedTime to 0
+    set checkInterval to 1 -- Check every second
+    set debugLog to ""
+
+    repeat
+        try
+            set statusContent to do shell script "cat " & statusFile & " 2>/dev/null || echo NOTFOUND"
+            set debugLog to debugLog & "Check at " & waitedTime & "s: " & (first paragraph of statusContent) & return
+
+            -- Check if DONE marker is present (indicates flash truly completed)
+            if statusContent contains "DONE" then
+                -- Flash has completed, determine success or failure
+                if statusContent contains "SUCCESS" then
+                    set flashResult to "SUCCESS"
+                else if statusContent contains "FAILED" then
+                    set flashResult to "FAILED"
+                else
+                    set flashResult to "COMPLETE"
+                end if
+
+                -- Wait a bit to ensure everything is flushed
+                delay 1
+                set debugLog to debugLog & "Found DONE marker, result: " & flashResult & return
+                exit repeat
+            end if
+        on error errMsg
+            -- File might not exist yet, continue waiting
+            set debugLog to debugLog & "Error at " & waitedTime & "s: " & errMsg & return
+        end try
+
+        -- Timeout protection
+        set waitedTime to waitedTime + checkInterval
+        if waitedTime > maxWaitTime then
+            set flashResult to "TIMEOUT"
+            set debugLog to debugLog & "Timed out after " & waitedTime & "s" & return
+            exit repeat
+        end if
+
+        delay checkInterval
+    end repeat
+
+    -- Write debug log to file for analysis
+    do shell script "echo " & quoted form of debugLog & " > /tmp/flash_debug.log"
+
+    -- Return immediately with result, cleanup happens async
+    -- This prevents blocking Claude Code
+
+    -- Schedule cleanup to happen after we return
+    ignoring application responses
+        try
+            close targetWindow saving no
+        end try
+
+        -- Only quit if Terminal was not running before
+        if "$TERMINAL_WAS_RUNNING" is "false" then
+            delay 1
+            try
+                quit
+            end try
+        end if
+    end ignoring
+
     return flashResult
 end tell
 END
 )
 
-    # Report completion status based on what osascript returned
+    # Report completion status
     echo ""
     if echo "$FLASH_STATUS" | grep -q "SUCCESS"; then
         echo -e "${GREEN}[COMPLETE]${NC} Flash succeeded!"
+        echo -e "${GREEN}[SUCCESS]${NC} Arduino is now running $BINARY_NAME"
     elif echo "$FLASH_STATUS" | grep -q "FAILED"; then
-        echo -e "${RED}[COMPLETE]${NC} Flash failed! Check the logs for details."
+        echo -e "${RED}[COMPLETE]${NC} Flash failed! Check the Terminal output for errors."
+        exit 1
+    elif echo "$FLASH_STATUS" | grep -q "TIMEOUT"; then
+        echo -e "${RED}[ERROR]${NC} Flash timed out after 5 minutes"
+        exit 1
+    elif echo "$FLASH_STATUS" | grep -q "ERROR"; then
+        echo -e "${RED}[ERROR]${NC} Flash monitoring error: $FLASH_STATUS"
+        exit 1
     else
         echo -e "${GREEN}[COMPLETE]${NC} Flash process completed."
     fi
@@ -209,8 +297,7 @@ fi
 echo ""
 echo -e "${BLUE}===================================${NC}"
 echo -e "${GREEN}[IMPORTANT]${NC} Claude Code terminal remains responsive!"
-echo -e "${GREEN}[IMPORTANT]${NC} Flash will complete in external Terminal"
 echo -e "${BLUE}===================================${NC}"
 
-# Clean up old temp scripts and status files after a delay
-(sleep 60 && rm -f /tmp/flash_external_*.sh /tmp/flash_status_latest.txt 2>/dev/null) &
+# Don't use background processes as they can cause Claude Code to wait
+# Clean up will happen next time the script runs (see line 114)
