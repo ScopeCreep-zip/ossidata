@@ -5,8 +5,26 @@
 set -euo pipefail
 
 # Default configuration
-PORT="${1:-}"
-BINARY_NAME="${2:-blink}"
+# Allow flexible argument order: flash.sh [PORT] BINARY_NAME or flash.sh BINARY_NAME
+if [ $# -eq 0 ]; then
+    PORT=""
+    BINARY_NAME="blink"
+elif [ $# -eq 1 ]; then
+    # Single argument - could be port or binary name
+    # If it starts with /, it's a port, otherwise it's a binary name
+    if [[ "$1" == /* ]] || [[ "$1" == COM* ]]; then
+        PORT="$1"
+        BINARY_NAME="blink"
+    else
+        PORT=""
+        BINARY_NAME="$1"
+    fi
+else
+    # Two arguments - first is port, second is binary
+    PORT="$1"
+    BINARY_NAME="$2"
+fi
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Colors
@@ -49,14 +67,56 @@ detect_os() {
 
 OS=$(detect_os)
 
-# Set default port if not provided, based on OS
-if [ -z "$PORT" ]; then
+# Auto-detect Arduino port if not provided
+detect_arduino_port() {
     case "$OS" in
-        macos) PORT="/dev/cu.usbmodem14401" ;;
-        linux) PORT="/dev/ttyUSB0" ;;
-        windows) PORT="COM3" ;;
-        *) PORT="/dev/ttyUSB0" ;;
+        macos)
+            # Look for Arduino on macOS (cu.usbmodem* or cu.usbserial*)
+            for port in /dev/cu.usbmodem* /dev/cu.usbserial*; do
+                if [ -e "$port" ]; then
+                    echo "$port"
+                    return 0
+                fi
+            done
+            ;;
+        linux)
+            # Look for Arduino on Linux (ttyUSB*, ttyACM*)
+            for port in /dev/ttyUSB* /dev/ttyACM*; do
+                if [ -e "$port" ]; then
+                    echo "$port"
+                    return 0
+                fi
+            done
+            ;;
+        windows)
+            # On Windows, try to detect COM ports
+            # This is a simplified version - may need adjustment
+            for i in {3..20}; do
+                if [ -e "/dev/ttyS$i" ]; then
+                    echo "COM$i"
+                    return 0
+                fi
+            done
+            ;;
     esac
+    return 1
+}
+
+# Set port: use provided, or auto-detect, or use OS default
+if [ -z "$PORT" ]; then
+    echo -e "${YELLOW}[INFO]${NC} No port specified, auto-detecting Arduino..."
+    if DETECTED_PORT=$(detect_arduino_port); then
+        PORT="$DETECTED_PORT"
+        echo -e "${GREEN}[SUCCESS]${NC} Found Arduino at $PORT"
+    else
+        echo -e "${YELLOW}[WARN]${NC} No Arduino detected, using default for $OS"
+        case "$OS" in
+            macos) PORT="/dev/cu.usbmodem14401" ;;
+            linux) PORT="/dev/ttyUSB0" ;;
+            windows) PORT="COM3" ;;
+            *) PORT="/dev/ttyUSB0" ;;
+        esac
+    fi
 fi
 
 echo "Flashing $BINARY_NAME to $PORT ($OS)..."

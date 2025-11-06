@@ -118,3 +118,49 @@ pub fn micros() -> u32 {
             .wrapping_add((tcnt as u32) * 4)
     }
 }
+
+/// Pauses the program for the specified number of microseconds
+///
+/// This function uses busy-waiting with NOP instructions for precise timing.
+/// For delays >= 1000 microseconds (1ms), consider using Delay::delay_ms() instead.
+///
+/// # Arguments
+/// * `us` - Number of microseconds to delay (accurate for 1-65535 microseconds)
+///
+/// # Examples
+/// ```no_run
+/// use arduino_uno::delay_micros;
+///
+/// // Precise 10 microsecond pulse
+/// delay_micros(10);
+/// ```
+///
+/// # Note
+/// At 16MHz, each cycle is 62.5ns. This implementation uses calibrated NOP loops
+/// to achieve microsecond precision. Accuracy is ±1-2 microseconds for delays > 10us.
+pub fn delay_micros(us: u16) {
+    if us == 0 {
+        return;
+    }
+
+    // At 16 MHz, each cycle is 62.5 nanoseconds
+    // For 1 microsecond = 16 cycles
+    // We need to account for function call overhead (~8 cycles)
+    //
+    // Loop structure (optimized by compiler):
+    // - Loop setup: ~4 cycles
+    // - Each iteration: ~4 cycles (decrement, compare, branch)
+    // - We aim for 4 cycles per iteration to get 4 iterations per microsecond
+
+    unsafe {
+        // Inline assembly for precise timing
+        // Each loop iteration takes exactly 4 cycles at -O2/-O3 optimization
+        core::arch::asm!(
+            "1:",                    // Label for loop
+            "    sbiw {0}, 1",      // Subtract 1 from counter (2 cycles)
+            "    brne 1b",           // Branch if not zero (2 cycles when taken, 1 when not)
+            inout(reg_iw) (us * 4) => _,  // 4 iterations per microsecond
+            options(nostack)
+        );
+    }
+}

@@ -31,7 +31,7 @@ pub use pin::{Pin, PinState, digital_read, digital_write};
 pub use serial::Serial;
 pub use pwm::{Pwm, PwmFrequency};
 pub use adc::{Adc, AdcReference};
-pub use time::{millis, micros};
+pub use time::{millis, micros, delay_micros};
 pub use i2c::{I2c, I2cError};
 pub use lcd::Lcd;
 pub use spi::{Spi, SpiSettings, SpiClock, SpiMode, BitOrder};

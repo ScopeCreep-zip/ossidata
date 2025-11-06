@@ -497,6 +497,7 @@ The Arduino Uno SDK is currently **82% complete** with extensive hardware suppor
 
 **Timing:**
 - ✅ **Timing**: millis() and micros() for precise timing
+- ✅ **Microsecond delays**: delay_micros() for precise microsecond-level timing
 
 **Advanced Features:**
 - ✅ **Interrupts**: External interrupts on D2/D3 with RISING/FALLING/CHANGE modes
@@ -506,7 +507,6 @@ The Arduino Uno SDK is currently **82% complete** with extensive hardware suppor
 - ✅ **Shift Registers**: shift_out/shift_in for I/O expansion
 
 **Planned Features:**
-- ⏳ delayMicroseconds()
 - ⏳ Watchdog timer
 - ⏳ Sleep modes
 
