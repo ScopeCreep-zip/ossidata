@@ -69,10 +69,10 @@ graph TD
     D --> H[UART Communication]
     E --> I[delay_ms/delay_us]
 
-    style A fill:#98FB98
-    style B fill:#87CEEB
-    style D fill:#FFB6C1
-    style E fill:#FFE4B5
+    style A fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#FFE4B5,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Available Modules

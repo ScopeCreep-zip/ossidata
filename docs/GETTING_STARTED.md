@@ -29,8 +29,8 @@ flowchart LR
     D --> E[Build & Flash]
     E --> F[Blink LED!]
 
-    style F fill:#98FB98
-    style A fill:#87CEEB
+    style F fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style A fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Step 1: Install Rust Toolchain
@@ -333,9 +333,9 @@ graph TD
     D --> F[set_high/set_low]
     E --> G[is_high/is_low]
 
-    style D fill:#90EE90
-    style E fill:#87CEEB
-    style B fill:#FFE4B5
+    style D fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#FFE4B5,stroke:#333,stroke-width:2px,color:#000
 ```
 
 **Key Insights:**
@@ -439,8 +439,8 @@ graph LR
     C[Button] ---|One Side| A
     D[Ground] ---|Other Side| C
 
-    style B fill:#87CEEB
-    style C fill:#FFB6C1
+    style B fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### LED Pattern Example Wiring
@@ -459,7 +459,7 @@ graph TD
     H --> K
     J --> K
 
-    style K fill:#333
+    style K fill:#333,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Learning Resources

@@ -78,10 +78,10 @@ flowchart TD
     P -->|No| O
     P -->|Yes| Q[Claude Code responsive]
 
-    style C fill:#90EE90
-    style D fill:#87CEEB
-    style E fill:#FFB6C1
-    style Q fill:#98FB98
+    style C fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style Q fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Implementation

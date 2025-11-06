@@ -37,6 +37,24 @@ If you're a student learning Arduino, you might wonder: "Why not just use the Ar
 - **Fearless concurrency**: Write interrupt handlers with confidence using Rust's ownership system
 - **Production-ready**: Rust is used in spacecraft, automotive systems, and other safety-critical applications
 
+### AI/Agentic Technology Ready
+
+Learning Rust with Ossidata prepares you for the future of AI-assisted development:
+
+**Why Rust + AI Agents Work Well Together:**
+- **Explicit type signatures**: AI agents can understand your code's intent from type information
+- **Compile-time guarantees**: AI-generated code is validated by Rust's compiler before running
+- **Self-documenting**: Rust's ownership and borrowing rules make code behavior predictable for AI analysis
+- **Safe iteration**: AI agents can refactor and experiment with your code without breaking memory safety
+
+**Real-world AI Development:**
+- Tools like GitHub Copilot, Claude Code, and Cursor work exceptionally well with Rust
+- Type-driven development enables AI to suggest more accurate code completions
+- Rust's error messages help AI agents understand and fix issues automatically
+- The strict compiler catches AI mistakes that would be runtime bugs in C/C++
+
+**Future-proof your skills**: As AI coding assistants become standard tools, knowing a language that AI can safely work with gives you a competitive advantage.
+
 ### What can you build?
 
 Everything you can build with Arduino C++, but safer:
@@ -493,10 +511,26 @@ graph TB
     AVR --> MCU
     HAL --> MCU
 
-    style APP fill:#e1f5ff
-    style CORE fill:#fff3e0
-    style UNO fill:#fff3e0
-    style MCU fill:#ffebee
+    style APP fill:#e1f5ff,stroke:#333,stroke-width:2px,color:#000
+    style CORE fill:#fff3e0,stroke:#333,stroke-width:2px,color:#000
+    style UNO fill:#fff3e0,stroke:#333,stroke-width:2px,color:#000
+    style MCU fill:#ffebee,stroke:#333,stroke-width:2px,color:#000
+    style GPIO fill:#c8e6c9,stroke:#333,stroke-width:1px,color:#000
+    style PWM fill:#c8e6c9,stroke:#333,stroke-width:1px,color:#000
+    style ADC fill:#c8e6c9,stroke:#333,stroke-width:1px,color:#000
+    style SERIAL fill:#bbdefb,stroke:#333,stroke-width:1px,color:#000
+    style I2C fill:#bbdefb,stroke:#333,stroke-width:1px,color:#000
+    style SPI fill:#bbdefb,stroke:#333,stroke-width:1px,color:#000
+    style LCD fill:#f8bbd0,stroke:#333,stroke-width:1px,color:#000
+    style RTC fill:#f8bbd0,stroke:#333,stroke-width:1px,color:#000
+    style TIME fill:#fff9c4,stroke:#333,stroke-width:1px,color:#000
+    style INT fill:#ffe0b2,stroke:#333,stroke-width:1px,color:#000
+    style EEPROM fill:#ffe0b2,stroke:#333,stroke-width:1px,color:#000
+    style TONE fill:#ffe0b2,stroke:#333,stroke-width:1px,color:#000
+    style PULSE fill:#ffe0b2,stroke:#333,stroke-width:1px,color:#000
+    style SHIFT fill:#ffe0b2,stroke:#333,stroke-width:1px,color:#000
+    style AVR fill:#e0e0e0,stroke:#333,stroke-width:1px,color:#000
+    style HAL fill:#e0e0e0,stroke:#333,stroke-width:1px,color:#000
 ```
 
 ### Feature Module Overview
@@ -537,21 +571,21 @@ graph LR
     I2C -.->|"Uses"| LCD
     I2C -.->|"Uses"| RTC
 
-    style GPIO fill:#c8e6c9
-    style PWM fill:#c8e6c9
-    style ADC fill:#c8e6c9
-    style UART fill:#bbdefb
-    style I2C fill:#bbdefb
-    style SPI fill:#bbdefb
-    style LCD fill:#f8bbd0
-    style RTC fill:#f8bbd0
-    style MILLIS fill:#fff9c4
-    style DELAY fill:#fff9c4
-    style INT fill:#ffe0b2
-    style EEPROM fill:#ffe0b2
-    style TONE fill:#ffe0b2
-    style PULSE fill:#ffe0b2
-    style SHIFT fill:#ffe0b2
+    style GPIO fill:#c8e6c9,stroke:#333,stroke-width:2px,color:#000
+    style PWM fill:#c8e6c9,stroke:#333,stroke-width:2px,color:#000
+    style ADC fill:#c8e6c9,stroke:#333,stroke-width:2px,color:#000
+    style UART fill:#bbdefb,stroke:#333,stroke-width:2px,color:#000
+    style I2C fill:#bbdefb,stroke:#333,stroke-width:2px,color:#000
+    style SPI fill:#bbdefb,stroke:#333,stroke-width:2px,color:#000
+    style LCD fill:#f8bbd0,stroke:#333,stroke-width:2px,color:#000
+    style RTC fill:#f8bbd0,stroke:#333,stroke-width:2px,color:#000
+    style MILLIS fill:#fff9c4,stroke:#333,stroke-width:2px,color:#000
+    style DELAY fill:#fff9c4,stroke:#333,stroke-width:2px,color:#000
+    style INT fill:#ffe0b2,stroke:#333,stroke-width:2px,color:#000
+    style EEPROM fill:#ffe0b2,stroke:#333,stroke-width:2px,color:#000
+    style TONE fill:#ffe0b2,stroke:#333,stroke-width:2px,color:#000
+    style PULSE fill:#ffe0b2,stroke:#333,stroke-width:2px,color:#000
+    style SHIFT fill:#ffe0b2,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## 📜 License

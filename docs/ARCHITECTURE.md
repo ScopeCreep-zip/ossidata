@@ -58,11 +58,11 @@ graph TB
     E --> F
     F --> G
 
-    style A fill:#98FB98
-    style B fill:#87CEEB
-    style C fill:#FFD700
-    style D fill:#FFB6C1
-    style G fill:#696969,color:#FFF
+    style A fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#FFD700,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#696969,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Design Philosophy
@@ -205,9 +205,9 @@ graph TD
     C --> G
     E --> H
 
-    style A fill:#98FB98
-    style B fill:#FFE4B5
-    style I fill:#87CEEB
+    style A fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#FFE4B5,stroke:#333,stroke-width:2px,color:#000
+    style I fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Crate Responsibilities
@@ -356,11 +356,11 @@ flowchart TD
 
     Q --> R[Arduino Runs!]
 
-    style A fill:#FFE4B5
-    style F fill:#87CEEB
-    style G fill:#FFB6C1
-    style R fill:#98FB98
-    style Q fill:#FFA500
+    style A fill:#FFE4B5,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style R fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style Q fill:#FFA500,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Build Configuration
@@ -450,13 +450,13 @@ graph TD
         G[Free<br/>~1.3KB]
     end
 
-    style A fill:#FF6B6B
-    style B fill:#4ECDC4
-    style C fill:#95E1D3
-    style D fill:#FFA07A
-    style E fill:#FFB6C1
-    style F fill:#DDD
-    style G fill:#90EE90
+    style A fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#4ECDC4,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#95E1D3,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#FFA07A,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#DDD,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#90EE90,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### No Heap Allocation
@@ -515,8 +515,8 @@ graph LR
 
     G --> H[Upload to Arduino]
 
-    style B fill:#87CEEB
-    style G fill:#98FB98
+    style B fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Examples
@@ -619,10 +619,10 @@ graph TD
     D --> G[Arduino Due<br/>Arduino Zero<br/>MKR Series]
     E --> H[Arduino Nano 33 IoT<br/>Arduino Nano ESP32]
 
-    style A fill:#98FB98
-    style C fill:#87CEEB
-    style D fill:#FFB6C1
-    style E fill:#FFD700
+    style A fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#FFB6C1,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#FFD700,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ### Architecture Differences
@@ -678,8 +678,8 @@ flowchart LR
     E --> F[Test on Hardware]
     F --> G[Document & Publish]
 
-    style A fill:#FFE4B5
-    style G fill:#98FB98
+    style A fill:#FFE4B5,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
 ```
 
 See [Contributing Guide](../CONTRIBUTING.md) for details.
@@ -739,8 +739,8 @@ graph TD
     D --> E[Add async/await]
     E --> F[Embassy Integration]
 
-    style A fill:#87CEEB
-    style F fill:#98FB98
+    style A fill:#87CEEB,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#98FB98,stroke:#333,stroke-width:2px,color:#000
 ```
 
 1. **Non-blocking I/O**: For better responsiveness
