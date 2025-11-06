@@ -9,7 +9,7 @@ tags:
 
 # Getting Started with Ossidata
 
-**Last Updated**: 2025-10-12
+**Last Updated**: 2025-11-05
 
 Welcome to Ossidata, a safe and ergonomic Rust SDK for Arduino! This guide will walk you through setting up your development environment and running your first Rust program on an Arduino.
 
@@ -192,7 +192,7 @@ Hello, World! #2
 
 ## Understanding the Code
 
-Let's look at the blink example:
+Let's look at the blink example and learn Rust concepts along the way:
 
 ```rust
 #![no_std]                    // No standard library (embedded)
@@ -223,7 +223,105 @@ fn main() -> ! {              // Never returns (runs forever)
 }
 ```
 
-### Key Concepts
+### Key Rust Concepts for Arduino Developers
+
+If you're coming from Arduino C++, here are the important Rust concepts to understand:
+
+#### 1. Ownership and Borrowing
+
+**Arduino C++ Problem:**
+```cpp
+int ledPin = 13;
+pinMode(ledPin, OUTPUT);
+// Later, anywhere in code...
+digitalWrite(ledPin, HIGH);  // Hope nobody else is using pin 13!
+```
+
+**Rust Solution:**
+```rust
+let mut led = peripherals.pins.d13.into_output();  // You OWN this pin
+led.set_high();  // Only you can control it!
+```
+
+In Rust, when you call `into_output()`, you **own** that pin. No other code can access it unless you explicitly allow it. This prevents bugs where two parts of your code try to control the same pin.
+
+#### 2. Type-State Pattern (Compile-Time Safety)
+
+**Arduino C++ Problem:**
+```cpp
+pinMode(13, OUTPUT);
+int value = digitalRead(13);  // Compiles, but wrong! Pin is OUTPUT
+```
+
+**Rust Solution:**
+```rust
+let led = peripherals.pins.d13.into_output();  // Pin<13, Output>
+led.is_high();  // ❌ Compile error! Output pins can't be read!
+```
+
+Rust tracks the pin mode in the **type system**. If you try to read an output pin, your code won't compile. Bugs caught before uploading!
+
+#### 3. The `mut` Keyword
+
+In Rust, variables are **immutable by default**:
+
+```rust
+let x = 5;
+x = 6;  // ❌ Compile error!
+
+let mut y = 5;
+y = 6;  // ✅ OK, y is mutable
+```
+
+For pins, you need `mut` if you're changing their state:
+```rust
+let mut led = peripherals.pins.d13.into_output();
+led.set_high();  // Mutates the pin state
+```
+
+#### 4. The `-> !` Return Type
+
+In Arduino C++, `loop()` is called repeatedly. In Rust, we use an explicit infinite loop:
+
+```rust
+fn main() -> ! {  // The ! means "never returns"
+    loop {
+        // This runs forever
+    }
+}
+```
+
+The `!` return type tells the compiler: "This function never exits." Perfect for embedded systems!
+
+#### 5. `.expect()` and Error Handling
+
+**Arduino C++ way:**
+```cpp
+Serial.begin(9600);  // Just hope it works!
+```
+
+**Rust way:**
+```rust
+let peripherals = Peripherals::take()
+    .expect("Failed to take peripherals");
+```
+
+Rust forces you to handle errors. The `.expect()` method says: "This should work, but if it doesn't, panic with this message."
+
+#### 6. `no_std` - No Operating System
+
+Arduino doesn't have an OS, so we can't use Rust's standard library (which expects an OS):
+
+```rust
+#![no_std]  // We're bare metal!
+```
+
+This means:
+- No `println!()` - use serial instead
+- No `Vec` or `String` - use fixed-size arrays
+- No heap allocation - stack only (limited to 2KB on Arduino Uno)
+
+### Type-State Pin Management
 
 ```mermaid
 graph TD
@@ -240,10 +338,12 @@ graph TD
     style B fill:#FFE4B5
 ```
 
-1. **`no_std`**: We don't have an operating system, so no standard library
+**Key Insights:**
+1. **`no_std`**: No operating system, no standard library
 2. **Peripherals Singleton**: Only one instance can access the hardware (safety!)
-3. **Type-State Pattern**: Pin modes are checked at compile-time
+3. **Type-State Pattern**: Pin modes are checked at compile-time (can't read output pins!)
 4. **Never Returns**: Embedded programs run forever (infinite loop)
+5. **Ownership**: Once you claim a pin, no other code can touch it
 
 ## Available Examples
 
@@ -375,6 +475,41 @@ graph TD
 - **Discussions**: [GitHub Discussions](https://github.com/ScopeCreep-zip/ossidata/discussions)
 - **Documentation**: [Full documentation](../README.md)
 
+## Current Implementation Status
+
+The Arduino Uno SDK is currently **82% complete** with extensive hardware support:
+
+**Implemented Features:**
+
+**Core I/O:**
+- ✅ **GPIO**: Digital input/output with compile-time safety
+- ✅ **PWM**: Analog output simulation on pins 3, 5, 6, 9, 10, 11
+- ✅ **ADC**: 10-bit analog input on pins A0-A5
+
+**Communication:**
+- ✅ **Serial**: UART communication with formatted output
+- ✅ **I2C**: Two-wire interface for sensors and peripherals
+- ✅ **SPI**: High-speed serial communication
+
+**Peripherals:**
+- ✅ **LCD**: Character displays (I2C and parallel interfaces)
+- ✅ **RTC**: Real-time clock integration
+
+**Timing:**
+- ✅ **Timing**: millis() and micros() for precise timing
+
+**Advanced Features:**
+- ✅ **Interrupts**: External interrupts on D2/D3 with RISING/FALLING/CHANGE modes
+- ✅ **EEPROM**: Persistent storage (1024 bytes)
+- ✅ **Tone Generation**: Audio output with tone/tone_duration/no_tone
+- ✅ **Pulse Measurement**: pulse_in/pulse_in_long for sensors
+- ✅ **Shift Registers**: shift_out/shift_in for I/O expansion
+
+**Planned Features:**
+- ⏳ delayMicroseconds()
+- ⏳ Watchdog timer
+- ⏳ Sleep modes
+
 ## Success!
 
 Congratulations! You've successfully:
@@ -383,7 +518,7 @@ Congratulations! You've successfully:
 - ✅ Made an LED blink with memory-safe code
 - ✅ Printed to the serial console
 
-You're now ready to build amazing embedded projects with Rust!
+You're now ready to build amazing embedded projects with Rust, leveraging GPIO, PWM, ADC, Serial, I2C, SPI, LCD, RTC, interrupts, EEPROM, tone generation, pulse measurement, shift registers, and more!
 
 ---
 

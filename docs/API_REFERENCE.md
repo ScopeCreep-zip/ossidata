@@ -8,18 +8,49 @@ tags:
 
 # Ossidata API Reference
 
-**Last Updated**: 2025-10-12
+**Last Updated**: 2025-11-05
 **Version**: 0.1.0-dev
-**Status**: 🚧 In Progress (Phase 1 - 45% Complete)
+**Status**: 🚧 In Progress (82% Complete)
 
 This document provides a comprehensive reference for the Ossidata Rust SDK APIs currently available for Arduino Uno.
+
+## How to Use This Reference
+
+This reference is designed for all skill levels:
+
+**For Beginners:**
+- Start with [Getting Started Guide](GETTING_STARTED.md) first
+- Look at the **Examples** section in each API
+- Read the "**What it does**" explanations in plain English
+
+**For Intermediate Users:**
+- Jump to specific features using the [Table of Contents](#table-of-contents)
+- Check function signatures and return types
+- Compare with Arduino C++ equivalents (provided where helpful)
+
+**For Advanced Users:**
+- Review type signatures and trait implementations
+- Understand ownership and lifetime semantics
+- Explore zero-cost abstraction implementations
+
+Each API section includes:
+- **Purpose**: What the API does in simple terms
+- **Basic Example**: Working code you can copy and modify
+- **API Details**: Function signatures, parameters, return types
+- **Hardware Notes**: Pin assignments, timing, limitations
 
 ## Table of Contents
 
 - [Module Overview](#module-overview)
 - [Core Types](#core-types)
 - [GPIO (Digital I/O)](#gpio-digital-io)
+- [PWM (Pulse Width Modulation)](#pwm-pulse-width-modulation)
+- [ADC (Analog Input)](#adc-analog-input)
 - [Serial Communication](#serial-communication)
+- [I2C Communication](#i2c-communication)
+- [SPI Communication](#spi-communication)
+- [LCD Display](#lcd-display)
+- [RTC (Real-Time Clock)](#rtc-real-time-clock)
 - [Timing & Delays](#timing--delays)
 - [Examples](#examples)
 - [Coming Soon](#coming-soon)
@@ -50,10 +81,21 @@ graph TD
 |--------|---------|--------|---------------|
 | `arduino_uno::Peripherals` | Hardware access singleton | ✅ Complete | [Link](#peripherals) |
 | `arduino_uno::Pin` | Type-safe GPIO | ✅ Complete | [Link](#gpio-digital-io) |
+| `arduino_uno::Pwm` | PWM output (6 channels) | ✅ Complete | [Link](#pwm-pulse-width-modulation) |
+| `arduino_uno::Adc` | Analog input (6 pins) | ✅ Complete | [Link](#adc-analog-input) |
 | `arduino_uno::Serial` | UART communication | ✅ Complete | [Link](#serial-communication) |
+| `arduino_uno::I2c` | I2C master mode | ✅ Complete | [Link](#i2c-communication) |
+| `arduino_uno::Spi` | SPI master mode | ✅ Complete | [Link](#spi-communication) |
+| `arduino_uno::Lcd` | LCD HD44780 driver | ✅ Complete | [Link](#lcd-display) |
+| `arduino_uno::Rtc` | RTC driver (DS1307/DS3231) | ✅ Complete | [Link](#rtc-real-time-clock) |
+| `arduino_uno::millis` | Millisecond timing | ✅ Complete | [Link](#timing--delays) |
+| `arduino_uno::micros` | Microsecond timing | ✅ Complete | [Link](#timing--delays) |
 | `arduino_uno::Delay` | Blocking delays | ✅ Complete | [Link](#timing--delays) |
-| `arduino_uno::Pwm` | PWM output | 📋 Planned | Phase 1 |
-| `arduino_uno::Adc` | Analog input | 📋 Planned | Phase 1 |
+| `arduino_uno::Eeprom` | Non-volatile memory | ✅ Complete | [Link](#eeprom-non-volatile-memory) |
+| `arduino_uno::tone` | Audio tone generation | ✅ Complete | [Link](#tone-generation) |
+| `arduino_uno::attach_interrupt` | External interrupts | ✅ Complete | [Link](#interrupts) |
+| `arduino_uno::pulse_in` | Pulse width measurement | ✅ Complete | [Link](#pulse-measurement) |
+| `arduino_uno::shift_out` | Shift register operations | ✅ Complete | [Link](#shift-registers) |
 
 ## Core Types
 
@@ -511,7 +553,1217 @@ fn main() -> ! {
 
 ---
 
+## PWM (Pulse Width Modulation)
+
+PWM allows control of analog output using digital pins. The ATmega328P provides 6 PWM-capable pins.
+
+### Available PWM Pins
+
+| Pin | Timer | Channel | Notes |
+|-----|-------|---------|-------|
+| D3 | Timer2 | OC2B | 8-bit |
+| D5 | Timer0 | OC0B | 8-bit (shared with millis) |
+| D6 | Timer0 | OC0A | 8-bit (shared with millis) |
+| D9 | Timer1 | OC1A | 16-bit (used as 8-bit) |
+| D10 | Timer1 | OC1B | 16-bit (used as 8-bit) |
+| D11 | Timer2 | OC2A | 8-bit |
+
+### PwmFrequency
+
+Predefined frequency options for PWM output.
+
+```rust
+pub enum PwmFrequency {
+    Freq980Hz,   // ~980 Hz - good for LEDs
+    Freq3_9kHz,  // ~3.9 kHz - good for motors
+    Freq31kHz,   // ~31 kHz - high frequency
+}
+```
+
+**Use cases**:
+- `Freq980Hz`: LED dimming, low-speed control
+- `Freq3_9kHz`: Motor speed control, servo control
+- `Freq31kHz`: High-frequency applications, reduced audible noise
+
+---
+
+### Pin<N, Output>::into_pwm()
+
+Convert an output pin to PWM mode.
+
+```rust
+pub fn into_pwm(self, freq: PwmFrequency) -> Pin<N, Pwm>
+```
+
+**Parameters**:
+- `freq`: PWM frequency setting
+
+**Returns**: Pin in PWM mode
+
+**Example**:
+```rust
+let mut pwm_pin = peripherals.pins.d9.into_output().into_pwm(PwmFrequency::Freq980Hz);
+```
+
+**Available on**: Pins D3, D5, D6, D9, D10, D11
+
+---
+
+### Pin<N, Pwm>::set_duty()
+
+Set the PWM duty cycle.
+
+```rust
+pub fn set_duty(&mut self, duty: u8)
+```
+
+**Parameters**:
+- `duty`: Duty cycle value (0-255)
+  - 0 = 0% (always LOW)
+  - 128 = 50% (half power)
+  - 255 = 100% (always HIGH)
+
+**Example**:
+```rust
+pwm_pin.set_duty(64);   // 25% duty cycle
+pwm_pin.set_duty(128);  // 50% duty cycle
+pwm_pin.set_duty(192);  // 75% duty cycle
+```
+
+---
+
+### Pin<N, Pwm>::into_output()
+
+Convert PWM pin back to regular output mode.
+
+```rust
+pub fn into_output(self) -> Pin<N, Output>
+```
+
+**Returns**: Pin in output mode
+
+**Example**:
+```rust
+let output_pin = pwm_pin.into_output();
+```
+
+---
+
+### PWM Example - LED Fade
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Peripherals, Delay, pwm::PwmFrequency};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let peripherals = Peripherals::take().unwrap();
+    let mut pwm = peripherals.pins.d9.into_output()
+        .into_pwm(PwmFrequency::Freq980Hz);
+    let mut delay = Delay::new();
+
+    loop {
+        // Fade in
+        for duty in 0..=255 {
+            pwm.set_duty(duty);
+            delay.delay_ms(5);
+        }
+
+        // Fade out
+        for duty in (0..=255).rev() {
+            pwm.set_duty(duty);
+            delay.delay_ms(5);
+        }
+    }
+}
+```
+
+---
+
+## ADC (Analog Input)
+
+The ADC provides 10-bit analog-to-digital conversion on pins A0-A5.
+
+### Adc
+
+Main ADC controller struct.
+
+```rust
+pub struct Adc {
+    // Internal ADC state
+}
+```
+
+### AdcReference
+
+Voltage reference selection for ADC measurements.
+
+```rust
+pub enum AdcReference {
+    AVcc,         // AVCC with external capacitor (default, typically 5V)
+    Internal1V1,  // Internal 1.1V reference
+    External,     // External reference on AREF pin
+}
+```
+
+**Use cases**:
+- `AVcc`: General purpose measurements (0-5V)
+- `Internal1V1`: High precision for low voltages (0-1.1V)
+- `External`: Custom reference voltage
+
+---
+
+### Adc::new()
+
+Create ADC with default settings (AVCC reference).
+
+```rust
+pub fn new() -> Self
+```
+
+**Example**:
+```rust
+let mut adc = Adc::new();
+```
+
+---
+
+### Adc::with_reference()
+
+Create ADC with specific voltage reference.
+
+```rust
+pub fn with_reference(reference: AdcReference) -> Self
+```
+
+**Parameters**:
+- `reference`: Voltage reference to use
+
+**Example**:
+```rust
+let mut adc = Adc::with_reference(AdcReference::Internal1V1);
+```
+
+---
+
+### Adc::set_reference()
+
+Change the voltage reference.
+
+```rust
+pub fn set_reference(&mut self, reference: AdcReference)
+```
+
+**Example**:
+```rust
+adc.set_reference(AdcReference::AVcc);
+```
+
+---
+
+### Adc::read_channel()
+
+Read a 10-bit value from an ADC channel.
+
+```rust
+pub fn read_channel(&mut self, channel: u8) -> u16
+```
+
+**Parameters**:
+- `channel`: ADC channel number (0-5 for A0-A5)
+
+**Returns**: ADC reading (0-1023)
+
+**Example**:
+```rust
+let value = adc.read_channel(0);  // Read A0
+```
+
+---
+
+### Convenience Methods
+
+```rust
+pub fn read_a0(&mut self) -> u16
+pub fn read_a1(&mut self) -> u16
+pub fn read_a2(&mut self) -> u16
+pub fn read_a3(&mut self) -> u16
+pub fn read_a4(&mut self) -> u16
+pub fn read_a5(&mut self) -> u16
+```
+
+**Example**:
+```rust
+let value = adc.read_a0();  // Same as read_channel(0)
+```
+
+---
+
+### Adc::reading_to_millivolts()
+
+Convert ADC reading to voltage in millivolts.
+
+```rust
+pub fn reading_to_millivolts(&self, reading: u16) -> u16
+```
+
+**Parameters**:
+- `reading`: ADC reading (0-1023)
+
+**Returns**: Voltage in millivolts
+
+**Example**:
+```rust
+let reading = adc.read_a0();
+let voltage_mv = adc.reading_to_millivolts(reading);
+// For AVCC (5V): 512 reading = 2500mV
+```
+
+---
+
+### ADC Example - Read Sensor
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Serial, Delay, Adc};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let mut serial = Serial::new(9600);
+    let mut adc = Adc::new();
+    let mut delay = Delay::new();
+
+    serial.println("ADC Reading Started");
+
+    loop {
+        let raw = adc.read_a0();
+        let voltage_mv = adc.reading_to_millivolts(raw);
+
+        serial.write_str("Raw: ");
+        // TODO: Add number formatting
+        serial.write_str(" Voltage: ");
+        serial.println("mV");
+
+        delay.delay_ms(500);
+    }
+}
+```
+
+---
+
+## I2C Communication
+
+I2C (TWI) provides master mode communication on pins A4 (SDA) and A5 (SCL).
+
+### I2c
+
+I2C master controller.
+
+```rust
+pub struct I2c {
+    // Internal I2C state
+}
+```
+
+### I2cError
+
+Error types for I2C operations.
+
+```rust
+pub enum I2cError {
+    Nack,      // No acknowledgment received
+    Timeout,   // Operation timeout
+    BusError,  // Bus error or arbitration lost
+}
+```
+
+---
+
+### I2c::new()
+
+Initialize I2C with 100kHz clock (standard mode).
+
+```rust
+pub fn new() -> Self
+```
+
+**Example**:
+```rust
+let i2c = I2c::new();
+```
+
+---
+
+### I2c::with_frequency()
+
+Initialize I2C with custom frequency.
+
+```rust
+pub fn with_frequency(freq_hz: u32) -> Self
+```
+
+**Parameters**:
+- `freq_hz`: I2C frequency in Hz (common: 100000, 400000)
+
+**Example**:
+```rust
+let i2c = I2c::with_frequency(400_000);  // 400kHz fast mode
+```
+
+---
+
+### I2c::write()
+
+Write data to an I2C device.
+
+```rust
+pub fn write(&self, address: u8, data: &[u8]) -> Result<(), I2cError>
+```
+
+**Parameters**:
+- `address`: 7-bit I2C device address
+- `data`: Data bytes to write
+
+**Returns**: `Ok(())` on success, `Err(I2cError)` on failure
+
+**Example**:
+```rust
+i2c.write(0x3C, &[0x00, 0xFF])?;
+```
+
+---
+
+### I2c::read()
+
+Read data from an I2C device.
+
+```rust
+pub fn read(&self, address: u8, buffer: &mut [u8]) -> Result<(), I2cError>
+```
+
+**Parameters**:
+- `address`: 7-bit I2C device address
+- `buffer`: Buffer to store received data
+
+**Example**:
+```rust
+let mut buf = [0u8; 4];
+i2c.read(0x3C, &mut buf)?;
+```
+
+---
+
+### I2c::write_register()
+
+Write to a device register.
+
+```rust
+pub fn write_register(&self, address: u8, register: u8, data: &[u8]) -> Result<(), I2cError>
+```
+
+**Parameters**:
+- `address`: 7-bit I2C device address
+- `register`: Register address
+- `data`: Data bytes to write
+
+**Example**:
+```rust
+i2c.write_register(0x68, 0x00, &[0x01, 0x02, 0x03])?;
+```
+
+---
+
+### I2c::read_register()
+
+Read from a device register.
+
+```rust
+pub fn read_register(&self, address: u8, register: u8, buffer: &mut [u8]) -> Result<(), I2cError>
+```
+
+**Parameters**:
+- `address`: 7-bit I2C device address
+- `register`: Register address
+- `buffer`: Buffer to store received data
+
+**Example**:
+```rust
+let mut buf = [0u8; 2];
+i2c.read_register(0x68, 0x00, &mut buf)?;
+```
+
+---
+
+### I2c::scan()
+
+Scan I2C bus for connected devices.
+
+```rust
+pub fn scan(&self) -> [bool; 128]
+```
+
+**Returns**: Array where `true` indicates a device at that address
+
+**Example**:
+```rust
+let devices = i2c.scan();
+for (addr, &present) in devices.iter().enumerate() {
+    if present {
+        // Device found at address `addr`
+    }
+}
+```
+
+---
+
+### I2C Example - Scanner
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Serial, I2c, Delay};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let mut serial = Serial::new(9600);
+    let i2c = I2c::new();
+    let mut delay = Delay::new();
+
+    serial.println("I2C Scanner");
+
+    let devices = i2c.scan();
+    serial.write_str("Found devices at: ");
+    for (addr, &present) in devices.iter().enumerate() {
+        if present {
+            // Print address (hex formatting needed)
+            serial.write_str("0x");
+        }
+    }
+
+    loop {
+        delay.delay_ms(1000);
+    }
+}
+```
+
+---
+
+## SPI Communication
+
+SPI provides high-speed master mode communication using pins D10 (SS), D11 (MOSI), D12 (MISO), D13 (SCK).
+
+### Spi
+
+SPI master controller.
+
+```rust
+pub struct Spi {
+    // Internal SPI state
+}
+```
+
+### SpiClock
+
+Clock speed divider settings.
+
+```rust
+pub enum SpiClock {
+    Div2,    // 8 MHz
+    Div4,    // 4 MHz (default)
+    Div8,    // 2 MHz
+    Div16,   // 1 MHz
+    Div32,   // 500 kHz
+    Div64,   // 250 kHz
+    Div128,  // 125 kHz
+}
+```
+
+---
+
+### SpiMode
+
+Clock polarity and phase combinations.
+
+```rust
+pub enum SpiMode {
+    Mode0,  // CPOL=0, CPHA=0 (most common)
+    Mode1,  // CPOL=0, CPHA=1
+    Mode2,  // CPOL=1, CPHA=0
+    Mode3,  // CPOL=1, CPHA=1
+}
+```
+
+---
+
+### BitOrder
+
+Data bit order.
+
+```rust
+pub enum BitOrder {
+    MsbFirst,  // Most significant bit first (default)
+    LsbFirst,  // Least significant bit first
+}
+```
+
+---
+
+### SpiSettings
+
+Configuration for SPI devices.
+
+```rust
+pub struct SpiSettings {
+    // Internal configuration
+}
+```
+
+#### SpiSettings::new()
+
+Create SPI settings.
+
+```rust
+pub fn new(clock: SpiClock, bit_order: BitOrder, mode: SpiMode) -> Self
+```
+
+**Example**:
+```rust
+let settings = SpiSettings::new(
+    SpiClock::Div4,
+    BitOrder::MsbFirst,
+    SpiMode::Mode0
+);
+```
+
+#### SpiSettings::default()
+
+Default settings (4MHz, MSB first, Mode 0).
+
+```rust
+impl Default for SpiSettings
+```
+
+---
+
+### Spi::new()
+
+Initialize SPI in master mode.
+
+```rust
+pub fn new() -> Self
+```
+
+**Example**:
+```rust
+let mut spi = Spi::new();
+```
+
+**Note**: SS pin (D10) must be controlled manually by your application.
+
+---
+
+### Spi::begin_transaction()
+
+Begin transaction with specific settings.
+
+```rust
+pub fn begin_transaction(&mut self, settings: SpiSettings)
+```
+
+**Example**:
+```rust
+let settings = SpiSettings::default();
+spi.begin_transaction(settings);
+// Assert SS LOW here
+```
+
+---
+
+### Spi::end_transaction()
+
+End the current transaction.
+
+```rust
+pub fn end_transaction(&mut self)
+```
+
+**Example**:
+```rust
+// Deassert SS HIGH here
+spi.end_transaction();
+```
+
+---
+
+### Spi::transfer()
+
+Transfer a single byte (full-duplex).
+
+```rust
+pub fn transfer(&mut self, data: u8) -> u8
+```
+
+**Parameters**:
+- `data`: Byte to send
+
+**Returns**: Byte received simultaneously
+
+**Example**:
+```rust
+let received = spi.transfer(0x42);
+```
+
+---
+
+### Spi::transfer_bytes()
+
+Transfer multiple bytes (full-duplex).
+
+```rust
+pub fn transfer_bytes(&mut self, tx_buffer: &[u8], rx_buffer: &mut [u8])
+```
+
+**Parameters**:
+- `tx_buffer`: Data to send
+- `rx_buffer`: Buffer for received data (must be same length)
+
+**Example**:
+```rust
+let tx = [0x01, 0x02, 0x03];
+let mut rx = [0u8; 3];
+spi.transfer_bytes(&tx, &mut rx);
+```
+
+---
+
+### Spi::write()
+
+Write multiple bytes (ignore received data).
+
+```rust
+pub fn write(&mut self, buffer: &[u8])
+```
+
+**Example**:
+```rust
+spi.write(&[0x01, 0x02, 0x03]);
+```
+
+---
+
+### Spi::read()
+
+Read multiple bytes (send 0x00 for each).
+
+```rust
+pub fn read(&mut self, buffer: &mut [u8])
+```
+
+**Example**:
+```rust
+let mut buf = [0u8; 4];
+spi.read(&mut buf);
+```
+
+---
+
+### SPI Example - Basic Transfer
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Peripherals, Spi, SpiSettings};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let peripherals = Peripherals::take().unwrap();
+    let mut spi = Spi::new();
+    let mut ss = peripherals.pins.d10.into_output();
+
+    let settings = SpiSettings::default();
+
+    loop {
+        spi.begin_transaction(settings);
+        ss.set_low();  // Select device
+
+        let response = spi.transfer(0x42);
+
+        ss.set_high();  // Deselect device
+        spi.end_transaction();
+    }
+}
+```
+
+---
+
+## LCD Display
+
+Driver for HD44780-compatible LCD displays with PCF8574 I2C backpack.
+
+### Lcd
+
+LCD controller for 16x2 or 20x4 character displays.
+
+```rust
+pub struct Lcd {
+    // Internal LCD state
+}
+```
+
+**Common I2C addresses**: 0x27 or 0x3F (use I2C scanner to find yours)
+
+---
+
+### Lcd::new()
+
+Create LCD instance.
+
+```rust
+pub fn new(i2c: I2c, address: u8) -> Self
+```
+
+**Parameters**:
+- `i2c`: I2C controller instance
+- `address`: I2C address of LCD (0x27 or 0x3F typically)
+
+**Example**:
+```rust
+let i2c = I2c::new();
+let mut lcd = Lcd::new(i2c, 0x3F);
+```
+
+---
+
+### Lcd::init()
+
+Initialize the LCD display.
+
+```rust
+pub fn init(&mut self) -> Result<(), I2cError>
+```
+
+**Returns**: `Ok(())` on success
+
+**Example**:
+```rust
+lcd.init()?;
+```
+
+**Note**: Must be called before any other LCD operations.
+
+---
+
+### Lcd::clear()
+
+Clear the display.
+
+```rust
+pub fn clear(&mut self) -> Result<(), I2cError>
+```
+
+**Example**:
+```rust
+lcd.clear()?;
+```
+
+---
+
+### Lcd::home()
+
+Return cursor to position (0, 0).
+
+```rust
+pub fn home(&mut self) -> Result<(), I2cError>
+```
+
+---
+
+### Lcd::set_cursor()
+
+Set cursor position.
+
+```rust
+pub fn set_cursor(&mut self, row: u8, col: u8) -> Result<(), I2cError>
+```
+
+**Parameters**:
+- `row`: Row number (0-3, depending on display)
+- `col`: Column number (0-15 for 16x2, 0-19 for 20x4)
+
+**Example**:
+```rust
+lcd.set_cursor(0, 0)?;  // Top left
+lcd.set_cursor(1, 5)?;  // Second row, 6th column
+```
+
+---
+
+### Lcd::write_char()
+
+Write a single character.
+
+```rust
+pub fn write_char(&mut self, ch: char) -> Result<(), I2cError>
+```
+
+**Example**:
+```rust
+lcd.write_char('A')?;
+```
+
+---
+
+### Lcd::write_str()
+
+Write a string.
+
+```rust
+pub fn write_str(&mut self, s: &str) -> Result<(), I2cError>
+```
+
+**Example**:
+```rust
+lcd.write_str("Hello, World!")?;
+```
+
+---
+
+### Lcd::print_at()
+
+Write string at specific position.
+
+```rust
+pub fn print_at(&mut self, row: u8, col: u8, s: &str) -> Result<(), I2cError>
+```
+
+**Example**:
+```rust
+lcd.print_at(0, 0, "Hello")?;
+lcd.print_at(1, 0, "World")?;
+```
+
+---
+
+### Lcd::backlight_on()
+
+Turn backlight on.
+
+```rust
+pub fn backlight_on(&mut self) -> Result<(), I2cError>
+```
+
+---
+
+### Lcd::backlight_off()
+
+Turn backlight off.
+
+```rust
+pub fn backlight_off(&mut self) -> Result<(), I2cError>
+```
+
+---
+
+### LCD Example - Hello World
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{I2c, Lcd, Delay};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let i2c = I2c::new();
+    let mut lcd = Lcd::new(i2c, 0x3F);
+    let mut delay = Delay::new();
+
+    lcd.init().unwrap();
+    lcd.backlight_on().unwrap();
+
+    lcd.print_at(0, 0, "Hello, World!").unwrap();
+    lcd.print_at(1, 0, "Ossidata Rust").unwrap();
+
+    loop {
+        delay.delay_ms(1000);
+    }
+}
+```
+
+---
+
+## RTC (Real-Time Clock)
+
+Driver for DS1307 and DS3231 I2C RTC modules.
+
+### DateTime
+
+Date and time representation (year range: 2000-2099).
+
+```rust
+pub struct DateTime {
+    // Internal date/time fields
+}
+```
+
+#### DateTime::new()
+
+Create new DateTime.
+
+```rust
+pub fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self
+```
+
+**Parameters**:
+- `year`: Full year (2000-2099)
+- `month`: Month (1-12)
+- `day`: Day of month (1-31)
+- `hour`: Hour (0-23)
+- `minute`: Minute (0-59)
+- `second`: Second (0-59)
+
+**Example**:
+```rust
+let dt = DateTime::new(2025, 11, 5, 14, 30, 0);
+```
+
+---
+
+#### DateTime Getters
+
+```rust
+pub fn year(&self) -> u16
+pub fn month(&self) -> u8
+pub fn day(&self) -> u8
+pub fn hour(&self) -> u8
+pub fn minute(&self) -> u8
+pub fn second(&self) -> u8
+```
+
+**Example**:
+```rust
+let year = dt.year();    // 2025
+let month = dt.month();  // 11
+```
+
+---
+
+### RtcError
+
+Error types for RTC operations.
+
+```rust
+pub enum RtcError {
+    I2C(I2cError),     // I2C communication error
+    InvalidDateTime,   // Invalid date/time values
+    PowerLoss,         // RTC oscillator stopped
+}
+```
+
+---
+
+### Rtc Trait
+
+Generic RTC interface.
+
+```rust
+pub trait Rtc {
+    fn begin(&mut self) -> Result<(), RtcError>;
+    fn adjust(&mut self, dt: &DateTime) -> Result<(), RtcError>;
+    fn now(&self) -> Result<DateTime, RtcError>;
+    fn is_running(&self) -> Result<bool, RtcError>;
+}
+```
+
+---
+
+### DS1307
+
+Basic RTC with 56 bytes NVRAM (I2C address: 0x68).
+
+```rust
+pub struct DS1307 {
+    // Internal RTC state
+}
+```
+
+#### DS1307::new()
+
+```rust
+pub fn new(i2c: I2c) -> Self
+```
+
+**Example**:
+```rust
+let i2c = I2c::new();
+let mut rtc = DS1307::new(i2c);
+rtc.begin()?;
+```
+
+---
+
+### DS3231
+
+High-precision RTC with temperature compensation (I2C address: 0x68).
+
+```rust
+pub struct DS3231 {
+    // Internal RTC state
+}
+```
+
+#### DS3231::new()
+
+```rust
+pub fn new(i2c: I2c) -> Self
+```
+
+---
+
+### Rtc::begin()
+
+Initialize the RTC.
+
+```rust
+fn begin(&mut self) -> Result<(), RtcError>
+```
+
+---
+
+### Rtc::adjust()
+
+Set the current date and time.
+
+```rust
+fn adjust(&mut self, dt: &DateTime) -> Result<(), RtcError>
+```
+
+**Example**:
+```rust
+let dt = DateTime::new(2025, 11, 5, 14, 30, 0);
+rtc.adjust(&dt)?;
+```
+
+---
+
+### Rtc::now()
+
+Get the current date and time.
+
+```rust
+fn now(&self) -> Result<DateTime, RtcError>
+```
+
+**Example**:
+```rust
+let now = rtc.now()?;
+let hour = now.hour();
+let minute = now.minute();
+```
+
+---
+
+### Rtc::is_running()
+
+Check if RTC is running.
+
+```rust
+fn is_running(&self) -> Result<bool, RtcError>
+```
+
+---
+
+### RTC Example - Digital Clock
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{I2c, Serial, Delay, rtc::{DS1307, Rtc, DateTime}};
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let mut serial = Serial::new(9600);
+    let i2c = I2c::new();
+    let mut rtc = DS1307::new(i2c);
+    let mut delay = Delay::new();
+
+    rtc.begin().unwrap();
+
+    // Set initial time
+    let dt = DateTime::new(2025, 11, 5, 14, 30, 0);
+    rtc.adjust(&dt).unwrap();
+
+    loop {
+        let now = rtc.now().unwrap();
+        serial.write_str("Time: ");
+        // TODO: Add number formatting
+        serial.println("");
+
+        delay.delay_ms(1000);
+    }
+}
+```
+
+---
+
 ## Timing & Delays
+
+### millis()
+
+Returns milliseconds since program started.
+
+```rust
+pub fn millis() -> u32
+```
+
+**Returns**: Millisecond count (overflows after ~50 days)
+
+**Example**:
+```rust
+use arduino_uno::millis;
+
+let start = millis();
+// ... do something ...
+let elapsed = millis() - start;
+```
+
+**Note**: Requires `init_timer()` to be called at startup.
+
+---
+
+### micros()
+
+Returns microseconds since program started.
+
+```rust
+pub fn micros() -> u32
+```
+
+**Returns**: Microsecond count (overflows after ~70 minutes)
+
+**Example**:
+```rust
+use arduino_uno::micros;
+
+let start = micros();
+// ... do something ...
+let elapsed = micros() - start;
+```
+
+---
 
 ### Delay
 
@@ -608,6 +1860,239 @@ fn main() -> ! {
 ```
 
 **Note**: `delay_us()` max is 65535, so for longer delays use `delay_ms()`
+
+---
+
+## Pulse Measurement
+
+Measure pulse widths on digital pins, useful for ultrasonic sensors (HC-SR04), RC receivers, and frequency measurement.
+
+### PulseState
+
+Pulse polarity to measure.
+
+```rust
+pub enum PulseState {
+    High,  // Measure HIGH pulse duration
+    Low,   // Measure LOW pulse duration
+}
+```
+
+---
+
+### pulse_in()
+
+Measure pulse width in microseconds.
+
+```rust
+pub fn pulse_in(pin: u8, state: PulseState, timeout_us: u32) -> u32
+```
+
+**Parameters**:
+- `pin`: Pin number (0-13)
+- `state`: Pulse polarity to measure (High or Low)
+- `timeout_us`: Maximum time to wait in microseconds
+
+**Returns**: Pulse duration in microseconds (0 if timeout)
+
+**Example**:
+```rust
+use arduino_uno::{pulse_in, PulseState};
+
+// Measure HIGH pulse on pin 7 (1 second timeout)
+let high_pulse = pulse_in(7, PulseState::High, 1_000_000);
+
+if high_pulse > 0 {
+    // Valid pulse measured
+}
+```
+
+**Note**: The pin must be configured as input before calling this function.
+
+---
+
+### pulse_in_long()
+
+Same as `pulse_in()` but explicitly uses micros() for timing.
+
+```rust
+pub fn pulse_in_long(pin: u8, state: PulseState, timeout_us: u32) -> u32
+```
+
+**Use case**: Prefer `pulse_in()` which automatically calls this implementation.
+
+---
+
+### Pulse Measurement Example - Ultrasonic Sensor
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Peripherals, Serial, Delay, pulse_in, PulseState, digital_write, PinState};
+use panic_halt as _;
+
+const TRIG_PIN: u8 = 9;
+const ECHO_PIN: u8 = 10;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let peripherals = Peripherals::take().unwrap();
+    let mut serial = Serial::new(9600);
+    let mut delay = Delay::new();
+
+    let _trig = peripherals.pins.d9.into_output();
+    let _echo = peripherals.pins.d10.into_floating_input();
+
+    serial.println("Ultrasonic Sensor");
+
+    loop {
+        // Trigger pulse
+        digital_write(TRIG_PIN, PinState::Low);
+        delay.delay_us(2);
+        digital_write(TRIG_PIN, PinState::High);
+        delay.delay_us(10);
+        digital_write(TRIG_PIN, PinState::Low);
+
+        // Measure echo pulse
+        let duration = pulse_in(ECHO_PIN, PulseState::High, 30_000);
+
+        if duration > 0 {
+            // Calculate distance in cm (speed of sound = 340 m/s)
+            let distance_cm = duration / 58;
+            serial.write_str("Distance: ");
+            // TODO: Add number formatting
+            serial.println(" cm");
+        }
+
+        delay.delay_ms(100);
+    }
+}
+```
+
+---
+
+## Shift Registers
+
+Interface with 74HC595 (output) and 74HC165 (input) shift registers for expanding I/O.
+
+### shift_out()
+
+Shift out a byte of data one bit at a time.
+
+```rust
+pub fn shift_out(data_pin: u8, clock_pin: u8, bit_order: BitOrder, value: u8)
+```
+
+**Parameters**:
+- `data_pin`: Pin to output data bits on
+- `clock_pin`: Pin to generate clock pulses on
+- `bit_order`: `BitOrder::MsbFirst` or `BitOrder::LsbFirst`
+- `value`: Byte value to shift out
+
+**Example**:
+```rust
+use arduino_uno::{shift_out, BitOrder, digital_write, PinState};
+
+const DATA_PIN: u8 = 11;   // MOSI
+const CLOCK_PIN: u8 = 13;  // SCK
+const LATCH_PIN: u8 = 10;  // SS
+
+// Prepare to shift data
+digital_write(LATCH_PIN, PinState::Low);
+
+// Shift out the pattern
+shift_out(DATA_PIN, CLOCK_PIN, BitOrder::MsbFirst, 0b10101010);
+
+// Latch the data to outputs
+digital_write(LATCH_PIN, PinState::High);
+```
+
+**Hardware**: 74HC595 connections:
+- Data pin → DS (pin 14)
+- Clock pin → SHCP (pin 11)
+- Latch pin → STCP (pin 12)
+
+---
+
+### shift_in()
+
+Shift in a byte of data one bit at a time.
+
+```rust
+pub fn shift_in(data_pin: u8, clock_pin: u8, bit_order: BitOrder) -> u8
+```
+
+**Parameters**:
+- `data_pin`: Pin to read data bits from
+- `clock_pin`: Pin to generate clock pulses on
+- `bit_order`: `BitOrder::MsbFirst` or `BitOrder::LsbFirst`
+
+**Returns**: Byte value that was shifted in
+
+**Example**:
+```rust
+use arduino_uno::{shift_in, BitOrder, digital_write, PinState};
+
+const DATA_PIN: u8 = 12;   // MISO
+const CLOCK_PIN: u8 = 13;  // SCK
+const LOAD_PIN: u8 = 10;   // PL (Parallel Load)
+
+// Load parallel inputs
+digital_write(LOAD_PIN, PinState::Low);
+digital_write(LOAD_PIN, PinState::High);
+
+// Shift in the data
+let value = shift_in(DATA_PIN, CLOCK_PIN, BitOrder::MsbFirst);
+```
+
+**Hardware**: 74HC165 connections:
+- Data pin → Q7 (pin 9)
+- Clock pin → CP (pin 2)
+- Load pin → PL (pin 1)
+
+---
+
+### Shift Register Example - LED Control
+
+```rust
+#![no_std]
+#![no_main]
+
+use arduino_uno::{Peripherals, Delay, shift_out, digital_write, PinState, BitOrder};
+use panic_halt as _;
+
+const DATA_PIN: u8 = 11;
+const CLOCK_PIN: u8 = 13;
+const LATCH_PIN: u8 = 10;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let peripherals = Peripherals::take().unwrap();
+    let mut delay = Delay::new();
+
+    let _data = peripherals.pins.d11.into_output();
+    let _clock = peripherals.pins.d13.into_output();
+    let _latch = peripherals.pins.d10.into_output();
+
+    let patterns = [
+        0b10101010,  // Alternating
+        0b11110000,  // Half on
+        0b11111111,  // All on
+        0b00000000,  // All off
+    ];
+
+    loop {
+        for &pattern in &patterns {
+            digital_write(LATCH_PIN, PinState::Low);
+            shift_out(DATA_PIN, CLOCK_PIN, BitOrder::MsbFirst, pattern);
+            digital_write(LATCH_PIN, PinState::High);
+
+            delay.delay_ms(1000);
+        }
+    }
+}
+```
 
 ---
 
@@ -709,38 +2194,13 @@ fn main() -> ! {
 
 ## Coming Soon
 
-### Planned APIs (Phase 1 Completion)
-
-#### PWM (Pulse Width Modulation)
-
-```rust
-// Coming soon!
-let mut pwm = peripherals.pins.d9.into_pwm();
-pwm.set_duty(128);  // 50% duty cycle (0-255)
-```
-
-**Use cases**: LED fading, motor speed control
-
----
-
-#### ADC (Analog to Digital Converter)
-
-```rust
-// Coming soon!
-let mut adc = peripherals.pins.a0.into_analog();
-let value = adc.read();  // 0-1023 (10-bit)
-```
-
-**Use cases**: Reading sensors, potentiometers, voltage monitoring
-
----
-
 ### Future APIs (Phase 2+)
 
-- **I2C**: `i2c.write(address, data)`
-- **SPI**: `spi.transfer(data)`
-- **Timers**: `Timer::new().start(1000)`
-- **Interrupts**: `pins.d2.enable_interrupt(handler)`
+- **Timers**: Advanced timer configuration and control
+- **Interrupts**: External interrupt handlers for pins
+- **EEPROM**: Non-volatile memory access
+- **Watchdog Timer**: System reset and low-power modes
+- **Power Management**: Sleep modes and power optimization
 
 ---
 
@@ -886,4 +2346,4 @@ Found an issue or have a suggestion? [Open an issue](https://github.com/ScopeCre
 
 ---
 
-**Version**: 0.1.0-dev | **Last Updated**: 2025-10-12 | **Status**: 🚧 Phase 1 (45% Complete)
+**Version**: 0.1.0-dev | **Last Updated**: 2025-11-05 | **Status**: 🚧 In Progress (75% Complete)

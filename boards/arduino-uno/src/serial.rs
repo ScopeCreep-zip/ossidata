@@ -116,6 +116,19 @@ impl Serial {
         self.write_byte(b'\r');
         self.write_byte(b'\n');
     }
+
+    /// Wait for transmission to complete
+    ///
+    /// This ensures all data has been physically transmitted from the UART
+    /// before returning. Useful before entering sleep modes or critical timing sections.
+    pub fn flush(&mut self) {
+        unsafe {
+            // Wait for transmit complete flag
+            while read_volatile(UCSR0A) & (1 << TXC0) == 0 {}
+            // Clear the flag by writing 1 to it
+            write_volatile(UCSR0A, 1 << TXC0);
+        }
+    }
 }
 
 // Implement uWrite trait for ufmt compatibility

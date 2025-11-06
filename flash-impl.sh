@@ -65,6 +65,50 @@ if avrdude \
     echo -e "${GREEN}✓${NC} Flash complete!"
     echo ""
     echo -e "${GREEN}SUCCESS:${NC} Arduino is running $BINARY_NAME"
+
+    # Check if binary uses serial by looking at the source file
+    BIN_SOURCE="src/bin/${BINARY_NAME}.rs"
+    if [ -f "$BIN_SOURCE" ] && grep -q "Serial" "$BIN_SOURCE"; then
+        echo ""
+        echo -e "${YELLOW}This binary uses Serial communication${NC}"
+        echo -e "${YELLOW}Capturing serial output...${NC}"
+
+        # Create output file with timestamp
+        OUTPUT_FILE="/tmp/serial_output_${BINARY_NAME}_$(date +%s).txt"
+
+        echo ""
+        echo -e "${YELLOW}Serial output will be saved to:${NC}"
+        echo "$OUTPUT_FILE"
+        echo ""
+        echo "Monitoring for 10 seconds..."
+        echo ""
+
+        # Capture serial output with timeout
+        # Use script to log everything, with timeout
+        timeout 10s bash -c "
+            stty -f '$PORT' 9600 cs8 -cstopb -parenb
+            cat '$PORT'
+        " 2>/dev/null > "$OUTPUT_FILE" || true
+
+        echo ""
+        echo -e "${GREEN}Serial capture complete${NC}"
+        echo ""
+        echo "Output saved to: $OUTPUT_FILE"
+
+        # Also save to a "latest" symlink for easy access
+        ln -sf "$OUTPUT_FILE" /tmp/serial_output_latest.txt
+        echo "Latest output: /tmp/serial_output_latest.txt"
+
+        # Display the captured output
+        if [ -f "$OUTPUT_FILE" ]; then
+            echo ""
+            echo -e "${YELLOW}Captured output:${NC}"
+            echo "----------------------------------------"
+            cat "$OUTPUT_FILE"
+            echo "----------------------------------------"
+        fi
+    fi
+
     exit 0
 else
     echo -e "${RED}ERROR:${NC} Flash failed"

@@ -74,10 +74,10 @@ if [ "$FLASH_SUCCESS" = true ]; then
     # Write success status with timestamp
     echo "SUCCESS:$BINARY_NAME:$(date +%s)" > "$STATUS_FILE"
 
-    # Brief pause before window closes
+    # Wait for serial capture to complete (10s capture + buffer time)
     echo ""
-    echo -e "${YELLOW}Window will close automatically...${NC}"
-    sleep 2
+    echo -e "${YELLOW}Window will close in 12 seconds...${NC}"
+    sleep 12
 else
     echo -e "${RED}[FAILED]${NC} Flash process failed!"
     echo -e "${YELLOW}Check the output above for errors${NC}"

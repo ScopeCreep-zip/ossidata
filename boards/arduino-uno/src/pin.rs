@@ -152,3 +152,53 @@ impl<const N: u8> Pin<N, mode::PullUp> {
         }
     }
 }
+
+// Arduino-style helper functions for use with pulse and shift functions
+
+/// Pin state values
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum PinState {
+    /// Low (0V)
+    Low,
+    /// High (5V)
+    High,
+}
+
+/// Write a digital value to a pin (Arduino-style digitalWrite)
+///
+/// # Arguments
+/// * `pin` - The pin number (0-13)
+/// * `state` - The state to write (High or Low)
+pub fn digital_write(pin: u8, state: PinState) {
+    if pin > 13 {
+        return;
+    }
+
+    unsafe {
+        match state {
+            PinState::High => gpio_impl::set_pin_high(pin),
+            PinState::Low => gpio_impl::set_pin_low(pin),
+        }
+    }
+}
+
+/// Read a digital value from a pin (Arduino-style digitalRead)
+///
+/// # Arguments
+/// * `pin` - The pin number (0-13)
+///
+/// # Returns
+/// The current pin state (High or Low)
+pub fn digital_read(pin: u8) -> PinState {
+    if pin > 13 {
+        return PinState::Low;
+    }
+
+    unsafe {
+        if gpio_impl::read_pin(pin) {
+            PinState::High
+        } else {
+            PinState::Low
+        }
+    }
+}

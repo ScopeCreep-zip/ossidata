@@ -9,7 +9,7 @@ tags:
 
 # Ossidata Architecture
 
-**Last Updated**: 2025-10-12
+**Last Updated**: 2025-11-05
 
 This document describes the technical architecture of the Ossidata Rust SDK for Arduino. It explains how the various components work together to provide a safe, ergonomic interface for embedded programming.
 
@@ -42,7 +42,7 @@ graph TB
     end
 
     subgraph "Hardware Abstraction"
-        D[ossidata-hal<br/>GPIO, Serial, PWM, ADC]
+        D[ossidata-hal<br/>GPIO, Serial, PWM, ADC, I2C, SPI, LCD, RTC]
         E[embedded-hal Traits<br/>Standard Interfaces]
     end
 
@@ -216,7 +216,7 @@ graph TD
 |-------|---------|--------------|--------|
 | **ossidata** | User-facing API, re-exports | All BSPs | 📋 Planned |
 | **ossidata-core** | Common types, no hardware deps | None | ✅ Implemented |
-| **arduino-uno** | Arduino Uno BSP | avr-device, ossidata-core | 🚧 In Progress (45%) |
+| **arduino-uno** | Arduino Uno BSP | avr-device, ossidata-core | 🚧 In Progress (75%) |
 | **arduino-mega** | Arduino Mega BSP | avr-device, ossidata-core | 📋 Planned |
 | **arduino-due** | Arduino Due BSP | atsamd-pac, ossidata-core | 📋 Planned |
 | **ossidata-hal** | Generic HAL implementations | embedded-hal | 📋 Future |
@@ -595,7 +595,7 @@ sequenceDiagram
     Note over ISR: Must be fast!<br/>No allocations!<br/>Critical section for shared data
 ```
 
-Planned interrupt API (Phase 2):
+Planned interrupt API (future enhancement):
 
 ```rust
 // Future: Safe interrupt handling
@@ -693,6 +693,39 @@ To add support for new peripherals (I2C, SPI, etc.):
 3. Expose in BSPs
 4. Add examples
 5. Test on hardware
+
+## Current Implementation Status
+
+The Arduino Uno BSP is currently **82% complete** with the following features implemented:
+
+**Core I/O:**
+- ✅ **GPIO**: Digital input/output with type-state pattern
+- ✅ **PWM**: Pulse-width modulation on 6 channels (D3, D5, D6, D9, D10, D11)
+- ✅ **ADC**: Analog-to-digital conversion with 10-bit resolution on A0-A5
+
+**Communication:**
+- ✅ **Serial Communication**: UART with formatted output
+- ✅ **I2C**: Two-wire interface for sensor communication (master mode, 100kHz)
+- ✅ **SPI**: Serial peripheral interface for high-speed devices (master mode, transaction-based)
+
+**Peripherals:**
+- ✅ **LCD**: Character LCD display support (HD44780 via I2C backpack)
+- ✅ **RTC**: Real-time clock integration (DS1307/DS3231)
+
+**Timing:**
+- ✅ **Timing**: millis() and micros() functions for precise timing using Timer0
+
+**Advanced Features:**
+- ✅ **Interrupts**: External interrupts on D2/D3 with RISING/FALLING/CHANGE modes
+- ✅ **EEPROM**: Read/write persistent storage (1024 bytes)
+- ✅ **Tone Generation**: Audio output with tone/tone_duration/no_tone using Timer2
+- ✅ **Pulse Measurement**: pulse_in/pulse_in_long for sensors (ultrasonic, RC)
+- ✅ **Shift Registers**: shift_out/shift_in for I/O expansion (74HC595/74HC165)
+
+**Planned:**
+- ⏳ **delayMicroseconds()**: Microsecond delays
+- ⏳ **Watchdog Timer**: System reset and supervision
+- ⏳ **Sleep Modes**: Power management
 
 ## Future Architecture
 

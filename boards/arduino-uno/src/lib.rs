@@ -4,6 +4,7 @@
 
 #![no_std]
 #![feature(asm_experimental_arch)]
+#![feature(abi_avr_interrupt)]
 
 pub use ossidata_core::prelude::*;
 use core::mem::MaybeUninit;
@@ -12,10 +13,34 @@ use core::mem::MaybeUninit;
 mod gpio_impl;
 mod pin;
 mod serial;
+mod pwm;
+mod adc;
+mod time;
+mod i2c;
+mod lcd;
+mod spi;
+mod rtc;
+mod interrupt;
+mod eeprom;
+mod tone;
+mod pulse;
+mod shift;
 
 // Re-export our hardware types
-pub use pin::Pin;
+pub use pin::{Pin, PinState, digital_read, digital_write};
 pub use serial::Serial;
+pub use pwm::{Pwm, PwmFrequency};
+pub use adc::{Adc, AdcReference};
+pub use time::{millis, micros};
+pub use i2c::{I2c, I2cError};
+pub use lcd::Lcd;
+pub use spi::{Spi, SpiSettings, SpiClock, SpiMode, BitOrder};
+pub use rtc::{DateTime, Rtc, RtcError, DS1307, DS3231};
+pub use interrupt::{attach_interrupt, detach_interrupt, disable_interrupts, restore_interrupts, ExternalInterrupt, InterruptMode};
+pub use eeprom::{Eeprom, EEPROM_SIZE};
+pub use tone::{tone, tone_duration, no_tone};
+pub use pulse::{pulse_in, pulse_in_long, PulseState};
+pub use shift::{shift_out, shift_in};
 
 // Critical section implementation is provided by avr-device crate
 // with the "critical-section-impl" feature
@@ -98,11 +123,16 @@ impl Peripherals {
                 None
             } else {
                 TAKEN = true;
+
+                // Initialize Timer0 for millis()/micros() timekeeping
+                time::init_timer();
+
                 let peripherals = Peripherals {
                     pins: Pins::new(),
                 };
-                PERIPHERALS.write(peripherals);
-                Some(PERIPHERALS.assume_init_read())
+                let ptr = core::ptr::addr_of_mut!(PERIPHERALS);
+                (*ptr).write(peripherals);
+                Some((*ptr).assume_init_read())
             }
         })
     }
