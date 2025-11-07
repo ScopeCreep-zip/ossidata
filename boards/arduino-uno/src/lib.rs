@@ -11,7 +11,9 @@ use core::mem::MaybeUninit;
 
 // Hardware-specific implementations
 mod gpio_impl;
+mod gpio;
 mod pin;
+mod ports;
 mod serial;
 mod pwm;
 mod adc;
@@ -25,9 +27,28 @@ mod eeprom;
 mod tone;
 mod pulse;
 mod shift;
+mod watchdog;
+mod sleep;
+mod embedded_hal_impl;
+mod utils;
+mod constants;
+mod progmem;
+mod pcint;
+mod timer;
+mod memory;
+mod software_serial;
+mod string;
+mod servo;
 
 // Re-export our hardware types
 pub use pin::{Pin, PinState, digital_read, digital_write};
+pub use gpio::{pin_mode, analog_write, analog_reference};
+pub use ports::{
+    Port, digital_pin_to_port, digital_pin_to_bit_mask,
+    port_output_register, port_input_register, port_mode_register,
+    port_write, port_read, port_direction,
+    fast_digital_write, fast_digital_read,
+};
 pub use serial::Serial;
 pub use pwm::{Pwm, PwmFrequency};
 pub use adc::{Adc, AdcReference};
@@ -41,6 +62,50 @@ pub use eeprom::{Eeprom, EEPROM_SIZE};
 pub use tone::{tone, tone_duration, no_tone};
 pub use pulse::{pulse_in, pulse_in_long, PulseState};
 pub use shift::{shift_out, shift_in};
+pub use watchdog::{Watchdog, WatchdogTimeout};
+pub use sleep::{Sleep, SleepMode};
+pub use progmem::{FlashString, pgm_read_byte, pgm_read_word, pgm_read_dword, pgm_read_float, pgm_read_ptr};
+pub use pcint::{PcintBank, pcint_attach, pcint_detach, pcint_enable_bank, pcint_disable_bank};
+pub use timer::{
+    Timer, Prescaler, TimerMode,
+    timer_read, timer_write, timer_set_prescaler,
+    timer_set_compare_a, timer_set_compare_b,
+    timer_enable_overflow_interrupt, timer_disable_overflow_interrupt,
+    timer_enable_compare_a_interrupt, timer_disable_compare_a_interrupt,
+    timer_enable_compare_b_interrupt, timer_disable_compare_b_interrupt,
+    timer1_set_icr, timer_stop, timer_start,
+    timer0_set_mode, timer1_set_mode, timer2_set_mode,
+    timer_clear_flags, timer1_force_output_compare_a, timer1_force_output_compare_b,
+};
+pub use memory::{
+    free_memory, get_stack_pointer, data_size, bss_size,
+    heap_start, heap_end, ram_size, ram_start_address, ram_end_address,
+    memory_info, MemoryInfo, check_stack_space,
+    fill_memory, count_pattern,
+};
+pub use software_serial::SoftwareSerial;
+pub use string::{ArduinoString, String, DEFAULT_STRING_CAPACITY};
+pub use servo::Servo;
+
+// Utility functions
+pub use utils::{
+    map, constrain, min, max, abs, sq,
+    random, random_max, random_seed,
+    radians, degrees, round,
+    bit, bit_read, bit_set, bit_clear, bit_toggle, bit_write,
+    low_byte, high_byte, make_word,
+    interrupts, no_interrupts, yield_now,
+};
+
+// Arduino-compatible constants
+pub use constants::{
+    HIGH, LOW,
+    INPUT, OUTPUT, INPUT_PULLUP,
+    PI, HALF_PI, TWO_PI, EULER, DEG_TO_RAD, RAD_TO_DEG,
+    LSBFIRST, MSBFIRST,
+    CHANGE, FALLING, RISING,
+    DEC, HEX, OCT, BIN,
+};
 
 // Critical section implementation is provided by avr-device crate
 // with the "critical-section-impl" feature

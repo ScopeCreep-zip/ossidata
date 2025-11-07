@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check ossidata-core
+        run: cargo check --manifest-path ossidata-core/Cargo.toml
+
+      - name: Check arduino-uno
+        run: cargo check --manifest-path boards/arduino-uno/Cargo.toml --target avr-atmega328p.json -Z build-std=core
+
+  build:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
+
+      - name: Install AVR dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-avr avr-libc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build blink example
+        run: |
+          cd boards/arduino-uno
+          cargo build --release --bin blink --target ../../avr-atmega328p.json -Z build-std=core
+
+      - name: Build hello_world example
+        run: |
+          cd boards/arduino-uno
+          cargo build --release --bin hello_world --target ../../avr-atmega328p.json -Z build-std=core
+
+      - name: Build watchdog_test example
+        run: |
+          cd boards/arduino-uno
+          cargo build --release --bin watchdog_test --target ../../avr-atmega328p.json -Z build-std=core
+
+      - name: Build sleep_test example
+        run: |
+          cd boards/arduino-uno
+          cargo build --release --bin sleep_test --target ../../avr-atmega328p.json -Z build-std=core
+
+      - name: Build embedded_hal_test example
+        run: |
+          cd boards/arduino-uno
+          cargo build --release --bin embedded_hal_test --target ../../avr-atmega328p.json -Z build-std=core
+
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy, rust-src
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run clippy on ossidata-core
+        run: cargo clippy --manifest-path ossidata-core/Cargo.toml -- -D warnings
+
+      - name: Run clippy on arduino-uno
+        run: |
+          cd boards/arduino-uno
+          cargo clippy --target ../../avr-atmega328p.json -Z build-std=core -- -D warnings

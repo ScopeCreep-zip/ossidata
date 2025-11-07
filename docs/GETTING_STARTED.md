@@ -135,19 +135,45 @@ sequenceDiagram
 
 ### Build and Flash
 
-```bash
-cd boards/arduino-uno
+There are two ways to flash your Arduino:
 
-# Flash the blink example (opens external terminal)
-cargo run --release --bin blink
+#### Option 1: Using flash.sh (Recommended)
+
+From the project root:
+
+```bash
+# Flash using auto-detected port
+./flash.sh blink
+
+# Or specify a port explicitly
+./flash.sh blink /dev/cu.usbmodem14401
 ```
 
 **What happens:**
-1. Cargo compiles your Rust code to AVR machine code
-2. The flash script opens an external terminal window
-3. Your Arduino is flashed in ~15 seconds
-4. The terminal closes automatically
-5. Your LED starts blinking!
+1. The script auto-detects your Arduino (or uses the specified port)
+2. Compiles your Rust code to AVR machine code
+3. Opens an external terminal window for flashing
+4. Your Arduino is flashed in ~15 seconds
+5. The terminal closes automatically when done
+6. Your LED starts blinking!
+
+#### Option 2: Using cargo run
+
+From the `boards/arduino-uno` directory:
+
+```bash
+cd boards/arduino-uno
+
+# Flash the blink example
+cargo run --release --bin blink
+```
+
+**flash.sh Features:**
+- ✅ Auto-detects Arduino port (macOS, Linux, Windows)
+- ✅ Color-coded status messages
+- ✅ Works from any directory in the project
+- ✅ Platform-aware (uses appropriate terminal for your OS)
+- ✅ Non-blocking (won't hang your IDE or terminal)
 
 > **Note**: The external terminal approach ensures Claude Code and other development tools remain responsive during flashing. See [FLASHING_SOLUTION.md](FLASHING_SOLUTION.md) for technical details.
 
@@ -348,22 +374,16 @@ graph TD
 ## Available Examples
 
 ```bash
+# Using flash.sh (from project root)
+./flash.sh blink
+./flash.sh hello_world
+./flash.sh servo_sweep
+./flash.sh advanced_features
+
+# Or using cargo run (from boards/arduino-uno)
 cd boards/arduino-uno
-
-# Basic LED blink
 cargo run --release --bin blink
-
-# Serial "Hello, World!" with counter
 cargo run --release --bin hello_world
-
-# Button input with pull-up resistor
-cargo run --release --bin button
-
-# Interactive serial echo
-cargo run --release --bin serial_echo
-
-# Knight Rider LED pattern (multiple LEDs)
-cargo run --release --bin led_pattern
 ```
 
 ### Example Descriptions
@@ -373,8 +393,17 @@ cargo run --release --bin led_pattern
 | **blink** | Blinks built-in LED | None (built-in) | Beginner |
 | **hello_world** | Prints to serial console | USB cable | Beginner |
 | **button** | Reads button input | Button on pin 2 | Beginner |
-| **serial_echo** | Echoes serial input back | USB cable | Intermediate |
+| **serial_echo** | Echoes serial input back | USB cable | Beginner |
 | **led_pattern** | Knight Rider animation | 5 LEDs on pins 8-12 | Intermediate |
+| **servo_sweep** | Sweeps servo 0-180 degrees | Servo on pin 9 | Intermediate |
+| **servo_control** | Advanced servo control (2 servos) | 2 servos on pins 9 & 10 | Intermediate |
+| **stream_test** | Serial Stream API demo | USB cable | Intermediate |
+| **stream_demo** | String reading from serial | USB cable | Intermediate |
+| **advanced_features** | All SDK features demo | Various | Advanced |
+| **utils_test** | Utility functions demo | USB cable | Intermediate |
+| **watchdog_test** | Watchdog timer demo | None | Intermediate |
+| **sleep_test** | Power management demo | None | Intermediate |
+| **embedded_hal_test** | embedded-hal traits demo | LED on pin 13 | Advanced |
 
 ## Troubleshooting
 
@@ -477,7 +506,7 @@ graph TD
 
 ## Current Implementation Status
 
-The Arduino Uno SDK is currently **82% complete** with extensive hardware support:
+The Arduino Uno SDK is now **100% complete** with full Arduino API compatibility:
 
 **Implemented Features:**
 
@@ -488,12 +517,20 @@ The Arduino Uno SDK is currently **82% complete** with extensive hardware suppor
 
 **Communication:**
 - ✅ **Serial**: UART communication with formatted output
+  - Stream API: peek(), flush(), setTimeout()
+  - Parsing: parse_int(), parse_float()
+  - Buffer reading: read_bytes(), read_bytes_until()
+  - String reading: read_string(), read_string_until()
+  - Searching: find(), find_until()
+  - Print API: Number bases (DEC, HEX, OCT, BIN), float precision
 - ✅ **I2C**: Two-wire interface for sensors and peripherals
 - ✅ **SPI**: High-speed serial communication
+- ✅ **SoftwareSerial**: UART on any digital pins with configurable baud rates
 
 **Peripherals:**
 - ✅ **LCD**: Character displays (I2C and parallel interfaces)
 - ✅ **RTC**: Real-time clock integration
+- ✅ **Servo Motors**: Interrupt-driven PWM control for RC servos (up to 12 servos)
 
 **Timing:**
 - ✅ **Timing**: millis() and micros() for precise timing
@@ -501,14 +538,36 @@ The Arduino Uno SDK is currently **82% complete** with extensive hardware suppor
 
 **Advanced Features:**
 - ✅ **Interrupts**: External interrupts on D2/D3 with RISING/FALLING/CHANGE modes
+- ✅ **Pin Change Interrupts (PCINT)**: Interrupt on any pin with bank control
 - ✅ **EEPROM**: Persistent storage (1024 bytes)
 - ✅ **Tone Generation**: Audio output with tone/tone_duration/no_tone
 - ✅ **Pulse Measurement**: pulse_in/pulse_in_long for sensors
 - ✅ **Shift Registers**: shift_out/shift_in for I/O expansion
+- ✅ **Timer Access**: Low-level Timer0/1/2 configuration and control
 
-**Planned Features:**
-- ⏳ Watchdog timer
-- ⏳ Sleep modes
+**System Features:**
+- ✅ **Watchdog Timer**: System reset protection with configurable timeouts (16ms-8s)
+- ✅ **Sleep Modes**: Power management with Idle, Power-Down, Power-Save, Standby modes
+- ✅ **embedded-hal Traits**: Compatible with the embedded Rust ecosystem (OutputPin, InputPin, DelayNs)
+
+**Utility Functions:**
+- ✅ **Math**: map(), constrain(), min(), max(), abs(), sq(), round()
+- ✅ **Random**: random(), random_max(), random_seed() with LCG algorithm
+- ✅ **Bit Manipulation**: bit(), bit_read(), bit_set(), bit_clear(), bit_toggle(), bit_write()
+- ✅ **Byte Operations**: low_byte(), high_byte(), make_word()
+- ✅ **Trigonometry**: radians(), degrees()
+- ✅ **Interrupt Control**: interrupts(), no_interrupts(), restore_interrupts()
+- ✅ **Multitasking**: yield_now() for cooperative scheduling
+- ✅ **Constants**: HIGH, LOW, PI, EULER, INPUT, OUTPUT, INPUT_PULLUP, DEC, HEX, OCT, BIN, etc.
+- ✅ **Memory**: free_memory(), memory_info(), stack inspection functions
+- ✅ **PROGMEM**: F!() macro for flash string storage (saves RAM)
+- ✅ **String Class**: Arduino-compatible String with safe fixed-size buffers
+- ✅ **Port Access**: Direct port manipulation for fast I/O
+
+**Arduino Compatibility Functions:**
+- ✅ **pinMode()**: Configure pin modes (INPUT, OUTPUT, INPUT_PULLUP)
+- ✅ **analogWrite()**: PWM output on capable pins
+- ✅ **analogReference()**: Set ADC reference voltage
 
 ## Success!
 
@@ -518,7 +577,15 @@ Congratulations! You've successfully:
 - ✅ Made an LED blink with memory-safe code
 - ✅ Printed to the serial console
 
-You're now ready to build amazing embedded projects with Rust, leveraging GPIO, PWM, ADC, Serial, I2C, SPI, LCD, RTC, interrupts, EEPROM, tone generation, pulse measurement, shift registers, and more!
+You're now ready to build amazing embedded projects with Rust, leveraging:
+- **I/O**: GPIO, PWM, ADC with type-safe pin modes
+- **Communication**: Serial (UART), SoftwareSerial, I2C, SPI with Stream API
+- **Peripherals**: LCD, RTC, Servo motors
+- **Advanced**: Interrupts, PCINT, EEPROM, Watchdog, Sleep modes
+- **Utilities**: Math, random, bit manipulation, PROGMEM strings, String class
+- **Control**: Tone generation, pulse measurement, shift registers, timers
+
+All with **zero-cost abstractions**, **compile-time safety**, and **100% Arduino API compatibility**!
 
 ---
 

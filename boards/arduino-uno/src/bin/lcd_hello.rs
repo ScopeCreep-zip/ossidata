@@ -17,7 +17,7 @@
 use arduino_uno::{Peripherals, I2c, Lcd, Delay, millis};
 use panic_halt as _;
 
-// TODO: Update this with your LCD's I2C address from i2c_scanner
+// NOTE: Update this with your LCD's I2C address from i2c_scanner
 const LCD_ADDRESS: u8 = 0x3F;  // Common addresses: 0x27 or 0x3F
 
 #[no_mangle]
